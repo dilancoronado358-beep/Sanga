@@ -644,125 +644,367 @@ function showTyping() {
     const c = document.getElementById('chat-messages');
     typingEl = document.createElement('div');
     typingEl.className = 'msg-row bot';
-    typingEl.innerHTML = `<div class="msg-bubble" style="opacity:0.6; font-style:italic; font-size:0.85rem;">SanGa está escribiendo…</div>`;
+    typingEl.innerHTML = `<div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
     c.appendChild(typingEl);
     c.scrollTop = c.scrollHeight;
 }
 function removeTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
 
+// ── Contexto de sesión del chat ──
+let chatCtx = { intent: null, selectedPago: null, reporteStep: null, reporteData: {} };
+
+// ── Mostrar pagos pendientes como tarjetas interactivas en el chat ──
+function chatShowPagos() {
+    if (DB.pagos.length === 0) {
+        appendMsg('<p>✅ ¡Excelente! No tienes obligaciones pendientes en este momento.</p>', 'bot');
+        return;
+    }
+    const cards = DB.pagos.map(p => `
+        <div class="chat-pay-card" onclick="chatSelectPago('${p.id}')">
+            <div class="cpc-left">
+                <div class="cpc-icon"><i class="fa-solid ${p.icono}"></i></div>
+                <div class="cpc-info">
+                    <div class="cpc-tipo">${p.tipo}</div>
+                    <div class="cpc-vence"><i class="fa-regular fa-calendar-xmark"></i> Vence: ${p.vence}</div>
+                </div>
+            </div>
+            <div class="cpc-monto">$${p.monto.toFixed(2)}</div>
+        </div>
+    `).join('');
+    appendMsg(`<p>Aquí tienes tus <strong>${DB.pagos.length} obligaciones pendientes</strong>. Toca la que deseas pagar:</p><div class="chat-pay-list">${cards}</div>`, 'bot');
+    chatCtx.intent = 'esperando-seleccion-pago';
+}
+
+function chatSelectPago(id) {
+    const pago = DB.pagos.find(p => p.id === id);
+    if (!pago) return;
+    chatCtx.selectedPago = pago;
+    chatCtx.intent = 'esperando-metodo-pago';
+    appendMsg(`<p>Seleccionaste: <strong>${pago.tipo}</strong> · <strong style="color:var(--accent)">$${pago.monto.toFixed(2)}</strong></p>
+        <p>¿Cómo deseas pagar?</p>
+        <div class="chat-pay-methods">
+            <button class="chat-pay-method-btn" onclick="chatExecutePayment('card')">
+                <i class="fa-solid fa-credit-card"></i> Tarjeta
+            </button>
+            <button class="chat-pay-method-btn" onclick="chatHandleTransferInfo()">
+                <i class="fa-solid fa-building-columns"></i> Transferencia
+            </button>
+        </div>`, 'bot');
+}
+
+function chatExecutePayment(method) {
+    const p = chatCtx.selectedPago;
+    if (!p) return;
+    appendMsg(`<p>Procesando pago de <strong>$${p.monto.toFixed(2)}</strong>...</p>`, 'bot');
+    showTyping();
+    setTimeout(() => {
+        removeTyping();
+        DB.pagos = DB.pagos.filter(x => x.id !== p.id);
+        saveDB();
+        renderPagos();
+        const num = `REC-${new Date().getFullYear()}-${Math.floor(Math.random() * 90000 + 10000)}`;
+        appendMsg(`
+            <p>✅ <strong>¡Pago procesado con éxito!</strong></p>
+            <div style="background:var(--accent-ultra); border:1px solid rgba(15,152,112,0.2); border-radius:var(--r-sm); padding:12px; margin-top:8px; font-size:0.84rem;">
+                <p style="margin-bottom:4px;"><strong>📌 Concepto:</strong> ${p.tipo}</p>
+                <p style="margin-bottom:4px;"><strong>💰 Monto:</strong> $${p.monto.toFixed(2)}</p>
+                <p style="margin-bottom:4px;"><strong>🧾 Método:</strong> ${method === 'card' ? 'Tarjeta' : 'Transferencia'}</p>
+                <p><strong>🧲 Comprobante:</strong> ${num}</p>
+            </div>
+            <div class="chat-validated-badge"><i class="fa-solid fa-circle-check"></i> Pago Validado</div>
+        `, 'bot');
+        chatCtx = { intent: null, selectedPago: null, reporteStep: null, reporteData: {} };
+        showToast(`Pago de $${p.monto.toFixed(2)} procesado desde SanGa IA`);
+    }, 1800);
+}
+
+function chatHandleTransferInfo() {
+    const p = chatCtx.selectedPago;
+    if (!p) return;
+    chatCtx.intent = 'esperando-comprobante-transferencia';
+    appendMsg(`
+        <p>Para pagar por transferencia, usa los siguientes datos bancarios:</p>
+        <div style="background:var(--surface-2); border-radius:var(--r-sm); padding:12px; margin-top:8px; font-size:0.84rem;">
+            <p><strong>Banco:</strong> Banco del Pacífico</p>
+            <p><strong>Cuenta corriente:</strong> 0046002204</p>
+            <p><strong>Titular:</strong> GAD Municip. Montúfar</p>
+            <p><strong>RUC:</strong> 0460000120001</p>
+            <p><strong>Concepto:</strong> ${p.tipo} · $${p.monto.toFixed(2)}</p>
+        </div>
+        <p style="margin-top:10px;">Luego de realizar la transferencia, toca el <strong>📎 clip</strong> para adjuntar el comprobante y lo valido automáticamente.</p>
+    `, 'bot');
+}
+
+function chatHandleVoucher(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const isImage = file.type.startsWith('image/');
+    const icon = isImage ? 'fa-image' : 'fa-file-pdf';
+    appendMsg(`
+        <div class="chat-voucher-preview">
+            <i class="fa-solid ${icon}"></i>
+            <p>Comprobante recibido:</p>
+            <div class="cvp-filename">${file.name}</div>
+            <div class="cvp-validating"><i class="fa-solid fa-spinner fa-spin"></i> Validando con el sistema...</div>
+        </div>
+    `, 'bot');
+    input.value = '';
+    setTimeout(() => {
+        const pago = chatCtx.selectedPago;
+        const validationCode = `VAL-${Math.floor(Math.random() * 999000 + 1000)}`;
+        let confirmMsg = `
+            <p>✅ <strong>Comprobante validado correctamente</strong></p>
+            <div class="chat-validated-badge"><i class="fa-solid fa-shield-check"></i> Código: ${validationCode}</div>
+        `;
+        if (pago) {
+            DB.pagos = DB.pagos.filter(x => x.id !== pago.id);
+            saveDB();
+            renderPagos();
+            confirmMsg += `<p style="margin-top:8px;">El pago de <strong>${pago.tipo}</strong> ha sido marcado como <strong>verificado</strong>. El municipio confirmará en 24 horas.</p>`;
+            chatCtx.selectedPago = null;
+        } else {
+            confirmMsg += `<p style="margin-top:8px;">Tu comprobante fue registrado con éxito. El equipo del GAD lo revisará en un plazo de <strong>24 horas hábiles</strong>.</p>`;
+        }
+        chatCtx.intent = null;
+        appendMsg(confirmMsg, 'bot');
+        showToast('Comprobante de pago validado correctamente');
+    }, 2200);
+}
+
+// ── Mini-formulario de Reporte conversacional ──
+function chatStartReporte() {
+    chatCtx.intent = 'reporte-categoria';
+    chatCtx.reporteData = {};
+    appendMsg(`
+        <p>📸 Para enviar tu reporte, necesito unos datos. ¿Qué tipo de problema es?</p>
+        <div class="chat-mini-form">
+            <select id="chat-reporte-cat">
+                <option value="">-- Selecciona una categoría --</option>
+                <option value="Bache en vía">🚧 Bache en vía</option>
+                <option value="Luminaria dañada">💡 Luminaria dañada</option>
+                <option value="Fuga de agua">💧 Fuga de agua</option>
+                <option value="Basura acumulada">🗑️ Basura acumulada</option>
+                <option value="Árbol caído">🌳 Árbol caído</option>
+                <option value="Señal de tránsito dañada">🚦 Señal de tránsito</option>
+                <option value="Alcantarilla obstruida">🔩 Alcantarilla obstruida</option>
+                <option value="Otro problema">❓ Otro</option>
+            </select>
+            <button class="btn btn-primary" style="font-size:0.84rem;" onclick="chatReporteNextStep()">Continuar →</button>
+        </div>
+    `, 'bot');
+}
+
+function chatReporteNextStep() {
+    if (chatCtx.intent === 'reporte-categoria') {
+        const cat = document.getElementById('chat-reporte-cat')?.value;
+        if (!cat) { showToast('Por favor selecciona una categoría', 'err'); return; }
+        chatCtx.reporteData.cat = cat;
+        chatCtx.intent = 'reporte-descripcion';
+        appendMsg(`
+            <p>Perfecto: <strong>${cat}</strong>. Ahora, <strong>¿dónde ocurre el problema?</strong> (barrio, calle, referencia):</p>
+            <div class="chat-mini-form">
+                <textarea id="chat-reporte-ubi" placeholder="Ej: Barrio San José, frente al parque central..."></textarea>
+                <button class="btn btn-primary" style="font-size:0.84rem;" onclick="chatReporteEnviar()">Enviar Reporte <i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        `, 'bot');
+    }
+}
+
+function chatReporteEnviar() {
+    const ubi = document.getElementById('chat-reporte-ubi')?.value.trim();
+    if (!ubi) { showToast('Ingresa la ubicación del problema', 'err'); return; }
+    const newRep = {
+        id: `REP-${1000 + Math.floor(Math.random() * 8000)}`,
+        cat: chatCtx.reporteData.cat, ubi,
+        fecha: new Date().toLocaleDateString('es-EC'),
+        estado: 'Enviado', badge: 'badge-blue', prioridad: 'Media'
+    };
+    DB.reportes.unshift(newRep);
+    saveDB();
+    renderReportes();
+    chatCtx = { intent: null, selectedPago: null, reporteStep: null, reporteData: {} };
+    appendMsg(`
+        <p>✅ ¡Reporte enviado exitosamente!</p>
+        <div style="background:var(--surface-2); border-radius:var(--r-sm); padding:12px; margin-top:8px; font-size:0.84rem;">
+            <p><strong>📌 Problema:</strong> ${newRep.cat}</p>
+            <p><strong>📍 Ubicación:</strong> ${newRep.ubi}</p>
+            <p><strong>🏷️ Ticket:</strong> ${newRep.id}</p>
+            <p><strong>📅 Fecha:</strong> ${newRep.fecha}</p>
+        </div>
+        <div class="chat-validated-badge"><i class="fa-solid fa-circle-check"></i> Reporte Registrado</div>
+    `, 'bot');
+    showToast('Reporte ciudadano enviado desde SanGa IA');
+}
+
+// ── Mini-formulario de Trámite conversacional ──
+function chatStartTramite() {
+    chatCtx.intent = 'tramite-tipo';
+    appendMsg(`
+        <p>📋 ¿Qué trámite deseas iniciar?</p>
+        <div class="chat-mini-form">
+            <select id="chat-tramite-tipo">
+                <option value="">-- Selecciona el trámite --</option>
+                <option>Certificado de Avalúos</option>
+                <option>Permiso de Construcción</option>
+                <option>Línea de Fábrica</option>
+                <option>Patente Comercial</option>
+                <option>Certificado de No Adeudar</option>
+                <option>Aprobación de Planos</option>
+                <option>Licencia de Funcionamiento</option>
+                <option>Permiso de Demolición</option>
+            </select>
+            <button class="btn btn-primary" style="font-size:0.84rem;" onclick="chatTramiteEnviar()">Iniciar Trámite <i class="fa-solid fa-file-arrow-up"></i></button>
+        </div>
+    `, 'bot');
+}
+
+function chatTramiteEnviar() {
+    const tipo = document.getElementById('chat-tramite-tipo')?.value;
+    if (!tipo) { showToast('Selecciona un tipo de trámite', 'err'); return; }
+    const newTrm = { id: `TRM-2026-${100 + Math.floor(Math.random() * 800)}`, tipo, fecha: new Date().toLocaleDateString('es-EC'), estado: 'Recibido', badge: 'badge-blue' };
+    DB.tramites.unshift(newTrm);
+    saveDB();
+    renderTramites();
+    chatCtx.intent = null;
+    appendMsg(`
+        <p>✅ ¡Trámite iniciado! Aquí tienes tu comprobante:</p>
+        <div style="background:var(--surface-2); border-radius:var(--r-sm); padding:12px; margin-top:8px; font-size:0.84rem;">
+            <p><strong>📑 Trámite:</strong> ${tipo}</p>
+            <p><strong>🏷️ Número:</strong> ${newTrm.id}</p>
+            <p><strong>📅 Fecha:</strong> ${newTrm.fecha}</p>
+            <p><strong>🟡 Estado:</strong> Recibido · En proceso</p>
+        </div>
+        <div class="chat-validated-badge"><i class="fa-solid fa-circle-check"></i> Trámite Registrado</div>
+    `, 'bot');
+    showToast('Trámite iniciado desde SanGa IA');
+}
+
+
 function analyzeIntent(qRaw) {
     const q = qRaw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    // 1. Deep DB Search
+    // ── BASE DE CONOCIMIENTO DEL MUNICIPIO ──
+    const KB = [
+        { k: ['horario', 'atencion', 'oficina', 'abre', 'cierra', 'ventanilla', 'abren'], r: '<p>🕔 El GAD Municipal de Montúfar atiende de <strong>lunes a viernes de 08:00 a 17:00</strong> en San Gabriel, Carchi. Las ventanillas de Tesorería y Registro atienden de 08:00 a 16:00.</p>' },
+        { k: ['telefono', 'numero', 'contacto', 'llamar', 'cel', 'whatsapp', 'comunicar'], r: '<p>📞 Puedes comunicarte con el municipio al <strong>(06) 2290-142</strong> o al correo <strong>info@montufar.gob.ec</strong>.</p>' },
+        { k: ['alcalde', 'fabian', 'robles', 'autoridad', 'concejo', 'municipio'], r: '<p>🏛️ El Alcalde del GAD Municipal de Montúfar es el <strong>Ing. Fabián Robles</strong>. El Concejo Municipal sesiona los miércoles a las 09:00 en el Salón de Sesiones.</p>' },
+        { k: ['direccion', 'queda', 'ubicacion', 'donde esta', 'como llegar al municipio'], r: '<p>📍 El GAD Municipal de Montúfar está en la <strong>calle Bolívar y Montúfar, San Gabriel, Carchi</strong>, a una cuadra del Parque Colón.</p>' },
+        { k: ['catastro', 'avaluo', 'predio', 'impuesto predial'], r: '<p>🏠 Para consultas de catastro y avalúos prediales, acércate al Departamento de Avalúos. También puedes iniciarlo aquí en SanGa.</p><button class="btn btn-outline" style="font-size:0.8rem;margin-top:6px;" onclick="chatStartTramite()">Iniciar Trámite de Avalúos</button>' },
+        { k: ['ruc', 'negocio', 'local comercial', 'comercio'], r: '<p>🏢 La Patente Municipal es obligatoria para todo negocio en el cantón. Puedes gestionarla desde SanGa en minutos.</p><button class="btn btn-outline" style="font-size:0.8rem;margin-top:6px;" onclick="chatStartTramite()">Solicitar Patente</button>' },
+        { k: ['comprobante', 'transferencia', 'subir', 'adjuntar', 'validar pago'], r: '<p>📎 Toca el <strong>clip (📎)</strong> en la parte inferior del chat para adjuntar tu comprobante de pago y lo valido en segundos.</p>' },
+        { k: ['mi cuenta', 'mis datos', 'mi perfil', 'mis tramites', 'historial'], r: `<p>👤 Hola <strong>${DB.usuario.nombre} ${DB.usuario.apellido}</strong>. Tienes <strong>${DB.tramites.length} trámites</strong> y <strong>${DB.pagos.length} obligaciones pendientes</strong>.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-outline" style="font-size:0.78rem;" onclick="chatStartTramite()">Nuevo Trámite</button><button class="btn btn-outline" style="font-size:0.78rem;" onclick="chatShowPagos()">Mis Pagos</button><button class="btn btn-outline" style="font-size:0.78rem;" onclick="navToPage('page-perfil')">Mi Perfil</button></div>` },
+        { k: ['emergencia', 'policia', 'bomberos', 'ambulancia', 'accidente', 'incendio', 'urgente', 'socorro'], r: '<p>🚨 Para emergencias llama al <strong>ECU 911</strong>. También puedes activar la alerta del municipio.</p><button class="btn" style="background:var(--danger);color:#fff;font-size:0.84rem;margin-top:6px;" onclick="reportEmergency()"><i class="fa-solid fa-siren-on"></i> Activar Alerta</button>' },
+        { k: ['transparencia', 'presupuesto', 'gasto', 'plan', 'poa', 'rendicion'], r: '<p>📊 La información de obras y presupuesto está disponible en <strong>Municipio Transparente</strong>.</p><button class="btn btn-outline" style="font-size:0.8rem;margin-top:6px;" onclick="navToPage(\'page-transparencia\')">Ver Transparencia</button>' },
+        { k: ['canton', 'montufar', 'san gabriel', 'carchi', 'historia', 'fundacion'], r: '<p>🌄 El Cantón Montúfar fue fundado el <strong>8 de septiembre de 1905</strong>. Su cabecera cantonal es <strong>San Gabriel</strong>, conocida como la "Ciudad de los Nevados". Tiene 7 parroquias: San José, Cristóbal Colón, Chitan, Fernández Salvador, La Paz, González Suárez y Piartal.</p>' },
+        { k: ['clima', 'lluvia', 'temperatura', 'frio', 'tiempo'], r: '<p>🌤️ El clima de Montúfar es andino frío con temperaturas entre <strong>8°C y 18°C</strong>. Se recomienda llevar abrigo al visitar el Bosque de los Arrayanes o la Laguna del Salado.</p>' },
+    ];
+
+    // 0. Verificar si hay un contexto activo de flujo en curso
+    if (chatCtx.intent === 'esperando-seleccion-pago' || chatCtx.intent === 'esperando-metodo-pago') {
+        if (/pagar todas|todo|todas|si|confirmar/.test(q)) { chatShowPagos(); return; }
+        if (/no|cancelar|salir/.test(q)) { chatCtx.intent = null; appendMsg('<p>Entendido, cuando quieras pagar dímelo 😊</p>', 'bot'); return; }
+    }
+
+    // 1. Buscar en la base de conocimiento (KB)
+    for (const entry of KB) {
+        if (entry.k.some(kw => q.includes(kw))) {
+            appendMsg(entry.r, 'bot');
+            return;
+        }
+    }
+
+    // 2. Deep DB Search en turismo, rural, obras, eventos
     let matchedItem = null;
     let matchedType = '';
-
-    // Helper para buscar en arreglos con titulo o desc
     const searchIn = (arr, type) => {
-        for (let i = 0; i < arr.length; i++) {
-            const item = arr[i];
-            const text = ((item.titulo || '') + ' ' + (item.desc || '') + ' ' + (item.detalle || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            // Si la query tiene más de 4 letras y está contenida en el texto, o al reves
-            if (q.length > 4 && (text.includes(q) || q.split(' ').some(w => w.length > 4 && text.includes(w)))) {
-                matchedItem = item;
-                matchedType = type;
-                return true;
+        for (const item of arr) {
+            const text = ((item.titulo || '') + ' ' + (item.desc || '') + ' ' + (item.detalle || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const words = q.split(' ').filter(w => w.length > 4);
+            if (words.some(w => text.includes(w)) || (q.length > 6 && text.includes(q))) {
+                matchedItem = item; matchedType = type; return true;
             }
         }
         return false;
     };
-
     if (searchIn(DB.turismo, 'turismo')) { }
     else if (searchIn(DB.rural, 'rural')) { }
     else if (searchIn(DB.eventos, 'eventos')) { }
+    else if (searchIn(DB.obras, 'obras')) { }
 
     if (matchedItem) {
         if (matchedType === 'turismo') {
-            appendMsg(`<p>Encontré información exacta sobre lo que buscas: <strong>${matchedItem.titulo}</strong>.</p><p><em>${matchedItem.desc}</em></p>`, 'bot');
-            setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-turismo')"><i class="fa-solid fa-map-location-dot"></i> Ver en Turismo</button>`, 'bot'), 400);
-            return;
+            appendMsg(`<p>Encontré información precisa sobre: <strong>${matchedItem.titulo}</strong></p><p><em>${matchedItem.desc}</em></p>${matchedItem.horario ? `<p style="font-size:0.82rem;color:var(--text-sub);margin-top:6px;"><i class="fa-regular fa-clock"></i> ${matchedItem.horario} · <i class="fa-solid fa-ticket"></i> ${matchedItem.entrada}</p>` : ''}<button class="btn btn-outline" style="font-size:0.82rem;margin-top:8px;" onclick="navToPage('page-turismo')"><i class="fa-solid fa-map-location-dot"></i> Ver en Turismo</button>`, 'bot');
         } else if (matchedType === 'rural') {
-            appendMsg(`<p>Tengo información de SanGa Rural sobre <strong>${matchedItem.titulo}</strong>: ${matchedItem.desc}</p>`, 'bot');
-            setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-rural')"><i class="fa-solid fa-tractor"></i> Ir a Rural</button>`, 'bot'), 400);
-            return;
+            appendMsg(`<p>Tengo información de SanGa Rural sobre <strong>${matchedItem.titulo}</strong>:</p><p>${matchedItem.detalle || matchedItem.desc}</p><button class="btn btn-outline" style="font-size:0.82rem;margin-top:8px;" onclick="navToPage('page-rural')"><i class="fa-solid fa-tractor"></i> Ver Rural</button>`, 'bot');
         } else if (matchedType === 'eventos') {
-            appendMsg(`<p>¡Claro! El evento <strong>${matchedItem.titulo}</strong> será el ${matchedItem.dia} de ${matchedItem.mes} en ${matchedItem.lugar}.</p>`, 'bot');
-            setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-eventos')"><i class="fa-solid fa-calendar-days"></i> Ver Eventos</button>`, 'bot'), 400);
-            return;
+            appendMsg(`<p>El evento <strong>${matchedItem.titulo}</strong> será el <strong>${matchedItem.dia} de ${matchedItem.mes}</strong> en ${matchedItem.lugar}. ${matchedItem.desc}</p><button class="btn btn-outline" style="font-size:0.82rem;margin-top:8px;" onclick="navToPage('page-eventos')"><i class="fa-solid fa-calendar-days"></i> Ver Eventos</button>`, 'bot');
+        } else if (matchedType === 'obras') {
+            appendMsg(`<p>La obra <strong>${matchedItem.titulo}</strong> lleva un avance del <strong>${matchedItem.avance}%</strong>. Contratista: ${matchedItem.contratista}. Presupuesto: ${matchedItem.presupuesto}. Estado: <em>${matchedItem.estado}</em>.</p><button class="btn btn-outline" style="font-size:0.82rem;margin-top:8px;" onclick="navToPage('page-transparencia')"><i class="fa-solid fa-hard-hat"></i> Ver Obras</button>`, 'bot');
         }
+        return;
     }
 
-    // 2. Scoring de intenciones (Bag of Words)
+    // 3. Scoring por intención principal (Bag of Words)
     const intents = {
-        pagos: { words: ['pagar', 'pago', 'predial', 'deuda', 'debo', 'patente', 'multa', 'tasa', 'agua', 'dinero'], score: 0 },
-        turismo: { words: ['turismo', 'visitar', 'viajar', 'conocer', 'lugar', 'lugares', 'bosque', 'cascada', 'laguna', 'gastronomia', 'iglesia'], score: 0 },
-        rural: { words: ['rural', 'campo', 'agricultura', 'agricola', 'semillas', 'brigada', 'medica', 'parroquia', 'comunidad'], score: 0 },
-        eventos: { words: ['evento', 'fiesta', 'concierto', 'feria', 'carrera', 'sesion', 'agenda', 'fin de semana'], score: 0 },
-        reportes: { words: ['reportar', 'bache', 'luminaria', 'basura', 'daño', 'problema', 'calle', 'roto', 'fuga', 'parque'], score: 0 },
-        tramites: { words: ['tramite', 'permiso', 'certificado', 'linea', 'fabrica', 'solicitud', 'documento', 'sacar'], score: 0 },
-        emergencia: { words: ['emergencia', 'ayuda', 'urgente', 'accidente', 'incendio', 'deslizamiento', 'policia', 'ambulancia'], score: 0 },
-        saludo: { words: ['hola', 'buenos', 'buenas', 'saludos', 'gracias', 'ola'], score: 0 }
+        pagos:       { w: ['pagar', 'pago', 'predial', 'deuda', 'debo', 'patente', 'multa', 'tasa', 'dinero', 'deudas', 'obligacion', 'cobro'], score: 0 },
+        turismo:     { w: ['turismo', 'visitar', 'viajar', 'conocer', 'lugar', 'bosque', 'cascada', 'laguna', 'gastronomia', 'iglesia', 'naturaleza', 'cultura'], score: 0 },
+        rural:       { w: ['rural', 'campo', 'agricultura', 'agricola', 'semilla', 'brigada', 'parroquia', 'comunidad', 'tractor', 'cosecha'], score: 0 },
+        eventos:     { w: ['evento', 'fiesta', 'concierto', 'feria', 'carrera', 'concejo', 'agenda', 'actividad', 'festival'], score: 0 },
+        reportes:    { w: ['reportar', 'bache', 'luminaria', 'basura', 'problema', 'calle', 'roto', 'fuga', 'parque', 'dano', 'deterioro', 'queja'], score: 0 },
+        tramites:    { w: ['tramite', 'permiso', 'certificado', 'linea', 'fabrica', 'solicitud', 'documento', 'sacar', 'registro', 'licencia'], score: 0 },
+        comprobante: { w: ['comprobante', 'transferencia', 'subir', 'adjuntar', 'validar', 'envie'], score: 0 },
+        saludo:      { w: ['hola', 'buenos', 'buenas', 'saludos', 'gracias', 'ola', 'buen dia'], score: 0 }
     };
-
-    const words = q.split(/\s+/);
-    words.forEach(w => {
-        if (w.length < 3) return;
+    q.split(/\s+/).filter(w => w.length > 2).forEach(w => {
         for (const key in intents) {
-            if (intents[key].words.some(kw => kw.includes(w) || w.includes(kw))) {
-                intents[key].score += 1;
-            }
+            if (intents[key].w.some(kw => kw.includes(w) || w.includes(kw))) intents[key].score++;
         }
     });
-
-    let bestIntent = null;
-    let maxScore = 0;
+    let best = null, maxScore = 0;
     for (const key in intents) {
-        if (intents[key].score > maxScore) {
-            maxScore = intents[key].score;
-            bestIntent = key;
-        }
+        if (intents[key].score > maxScore) { maxScore = intents[key].score; best = key; }
     }
 
-    // 3. Responder basado en la intención ganadora
-    if (bestIntent === 'pagos') {
-        appendMsg(`<p>Entendido. 💧 He verificado tu cuenta y tienes <strong>${DB.pagos.length} obligaciones pendientes</strong>.</p><p>Puedes revisarlas y pagarlas en línea de forma segura.</p>`, 'bot');
-        setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-pagos')"><i class="fa-solid fa-wallet"></i> Ir a Mis Pagos</button>`, 'bot'), 400);
-    } else if (bestIntent === 'turismo') {
+    // 4. Responder por intención ganadora
+    if (best === 'pagos') {
+        chatShowPagos();
+    } else if (best === 'tramites') {
+        appendMsg('<p>📋 Puedo ayudarte a iniciar un trámite ahora mismo:</p>', 'bot');
+        setTimeout(() => chatStartTramite(), 400);
+    } else if (best === 'reportes') {
+        appendMsg('<p>📸 Voy a guiarte para enviar el reporte ciudadano:</p>', 'bot');
+        setTimeout(() => chatStartReporte(), 400);
+    } else if (best === 'comprobante') {
+        chatCtx.intent = 'esperando-comprobante-transferencia';
+        appendMsg('<p>📎 Toca el <strong>clip (📎)</strong> en la parte inferior para adjuntar la imagen de tu comprobante de pago y lo valido al instante.</p>', 'bot');
+    } else if (best === 'turismo') {
         const t = DB.turismo[Math.floor(Math.random() * DB.turismo.length)];
-        appendMsg(`<p>🏔️ ¡Montúfar tiene lugares increíbles! Uno que te sugiero es <strong>${t.titulo}</strong>.</p><p>¿Quieres descubrir más opciones turísticas?</p>`, 'bot');
+        appendMsg(`<p>🏔️ ¡Montúfar tiene lugares increíbles! Te sugiero: <strong>${t.titulo}</strong>.</p><p><em>${t.desc}</em></p>`, 'bot');
         setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-turismo')"><i class="fa-solid fa-map-location-dot"></i> Explorar Turismo</button>`, 'bot'), 400);
-    } else if (bestIntent === 'rural') {
-        appendMsg(`<p>🌾 SanGa Rural apoya al sector agrícola y comunitario con <strong>mantenimiento vial, semillas, brigadas médicas y más</strong>.</p>`, 'bot');
+    } else if (best === 'rural') {
+        appendMsg('<p>🌾 SanGa Rural apoya al campo montufareño con <strong>vías, semillas, brigadas médicas y programas sociales</strong>.</p>', 'bot');
         setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-rural')"><i class="fa-solid fa-tractor"></i> Ver Servicios Rurales</button>`, 'bot'), 400);
-    } else if (bestIntent === 'eventos') {
+    } else if (best === 'eventos') {
         const ev = DB.eventos[0];
-        appendMsg(`<p>🎉 ¡Siempre hay algo que hacer! El evento más próximo es <strong>${ev.titulo}</strong> el ${ev.dia} de ${ev.mes}.</p>`, 'bot');
+        appendMsg(`<p>🎉 Próximo evento: <strong>${ev.titulo}</strong> el ${ev.dia} de ${ev.mes} en ${ev.lugar}.</p>`, 'bot');
         setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-eventos')"><i class="fa-solid fa-calendar-days"></i> Ver Agenda</button>`, 'bot'), 400);
-    } else if (bestIntent === 'reportes') {
-        appendMsg(`<p>📸 Para procesar tu reporte ciudadano, por favor indícame la categoría del problema y adjunta una foto si es posible.</p>`, 'bot');
-        setTimeout(() => appendMsg(`<button class="btn btn-outline w-100" onclick="openModal('modal-nuevo-reporte')"><i class="fa-solid fa-camera-retro"></i> Crear Reporte</button>`, 'bot'), 400);
-    } else if (bestIntent === 'tramites') {
-        appendMsg(`<p>📋 Puedo guiarte para sacar permisos de construcción, línea de fábrica, certificados de avalúos o patentes, todo 100% en línea.</p>`, 'bot');
-        setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-tramites')"><i class="fa-solid fa-file-signature"></i> Ver Trámites</button>`, 'bot'), 400);
-    } else if (bestIntent === 'emergencia') {
-        appendMsg(`<p>🚨 Si esto es una emergencia real, activa la alerta de inmediato para notificar a las autoridades con tu ubicación GPS.</p>`, 'bot');
-        setTimeout(() => appendMsg(`<button class="btn" style="background:var(--danger);color:#fff;width:100%;" onclick="reportEmergency()"><i class="fa-solid fa-siren-on"></i> ACTIVAR ALERTA DE EMERGENCIA</button>`, 'bot'), 400);
-    } else if (bestIntent === 'saludo') {
-        appendMsg(`<p>¡Hola! 😊 Soy SanGa, la inteligencia artificial del <strong>Municipio de Montúfar</strong>. Estoy entrenado para entender tus consultas sobre turismo, pagos, reportes, trámites y más. ¿En qué te ayudo?</p>`, 'bot');
+    } else if (best === 'saludo') {
+        appendMsg(`<p>¡Hola <strong>${DB.usuario.nombre}</strong>! 😊 Soy SanGa, tu asistente del GAD de Montúfar. Puedo ayudarte a <strong>pagar, tramitar, reportar, informarte sobre turismo</strong> y mucho más. ¿Qué necesitas?</p>`, 'bot');
     } else {
-        // Fallback dinámico inteligente
-        appendMsg(`<p>He analizado tu consulta pero necesito un poco más de contexto. ¿Te refieres a realizar un <strong>Trámite</strong>, revisar <strong>Pagos pendientes</strong>, o necesitas información sobre el <strong>Cantón</strong>?</p>`, 'bot');
+        appendMsg('<p>He analizado tu consulta. ¿Con cuál de estas áreas te puedo ayudar?</p>', 'bot');
         setTimeout(() => {
             appendMsg(`
-                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-                    <button class="btn btn-outline" style="flex:1; font-size:0.8rem; padding:8px;" onclick="navToPage('page-tramites')">Trámites</button>
-                    <button class="btn btn-outline" style="flex:1; font-size:0.8rem; padding:8px;" onclick="navToPage('page-pagos')">Pagos</button>
-                    <button class="btn btn-outline" style="flex:1; font-size:0.8rem; padding:8px;" onclick="navToPage('page-turismo')">Turismo</button>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;">
+                    <button class="btn btn-outline" style="flex:1;min-width:90px;font-size:0.78rem;padding:7px;" onclick="chatShowPagos()">💳 Pagar</button>
+                    <button class="btn btn-outline" style="flex:1;min-width:90px;font-size:0.78rem;padding:7px;" onclick="chatStartTramite()">📋 Trámite</button>
+                    <button class="btn btn-outline" style="flex:1;min-width:90px;font-size:0.78rem;padding:7px;" onclick="chatStartReporte()">📸 Reporte</button>
+                    <button class="btn btn-outline" style="flex:1;min-width:90px;font-size:0.78rem;padding:7px;" onclick="navToPage('page-turismo')">🏔️ Turismo</button>
                 </div>
             `, 'bot');
-        }, 400);
+        }, 300);
     }
 }
+
 
 // ═══════════════════════════════════════════════════
 // 6. MODALES

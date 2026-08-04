@@ -292,13 +292,15 @@
                                 </div>
                             </div>
                             <div class="chat-input-row">
-                                <button class="ci-btn" title="Adjuntar"><i class="fa-solid fa-paperclip"></i></button>
+                                <button class="ci-btn" title="Adjuntar comprobante" onclick="document.getElementById('voucher-file-input').click()"><i class="fa-solid fa-paperclip"></i></button>
                                 <button class="ci-btn" title="Ubicación GPS"><i
                                         class="fa-solid fa-location-dot"></i></button>
                                 <input type="text" id="chat-input" placeholder="Escribe tu consulta a SanGa…">
                                 <button class="ci-btn primary" onclick="sendMessage()"><i
                                         class="fa-solid fa-paper-plane"></i></button>
                                 <button class="ci-btn" title="Voz"><i class="fa-solid fa-microphone"></i></button>
+                                <!-- Hidden file input for voucher upload -->
+                                <input type="file" id="voucher-file-input" accept="image/*,.pdf" style="display:none" onchange="chatHandleVoucher(this)">
                             </div>
                         </div>
                     </div>
