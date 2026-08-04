@@ -895,3 +895,33 @@ a { color:var(--primary); text-decoration:none; }
 .toast.err  { border-left-color:var(--danger); }
 @keyframes toastIn  { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
 @keyframes toastOut { to{transform:translateX(100%);opacity:0} }
+
+/* ── RESPONSIVE MÓVIL ── */
+@media (max-width: 768px) {
+    .sh-header { padding: 10px 12px; gap: 8px; }
+    .sb-logo-wrap img { width: 34px; height: 34px; border-radius: 8px; }
+    .brand-name { font-size: 1rem; }
+    .brand-sub { display: none; } /* Ocultar para ganar espacio */
+    
+    /* Botones de acción arriba */
+    .topbar-btn span { display: none; } /* Oculta texto "Emergencia" */
+    .topbar-btn { padding: 8px; border-radius: 50%; justify-content: center; }
+    .sh-actions { gap: 6px; }
+    
+    /* Tarjeta de usuario */
+    .sb-user-info { display: none; } /* Oculta el nombre en móvil */
+    .sh-user-card { margin: 0; padding: 2px; background: transparent; border: none; }
+    .sh-user-card:hover { background: transparent; }
+    .sb-user-avatar { width: 30px; height: 30px; font-size: 0.8rem; }
+    .sb-logout-btn { width: 30px; height: 30px; font-size: 0.85rem; }
+
+    /* Navegación con scroll horizontal suave */
+    .sh-nav-scroll { 
+        padding: 0 12px; 
+        -webkit-overflow-scrolling: touch; 
+    }
+    
+    /* Layout general */
+    .page { padding: 16px 12px; }
+    .page-hdr { flex-direction: column; gap: 6px; }
+}

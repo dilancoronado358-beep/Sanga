@@ -11,22 +11,22 @@ const DB = {
     usuario: { nombre: 'Juan', apellido: 'Ciudadano', cedula: '0401234567', correo: 'juan.ciudadano@gmail.com' },
 
     tramites: [
-        { id: 'TRM-2026-081', tipo: 'Permiso de Construcción',   fecha: '28/07/2026', estado: 'Aprobado',   badge: 'badge-success' },
-        { id: 'TRM-2026-082', tipo: 'Certificado de Avalúos',    fecha: '01/08/2026', estado: 'En Revisión', badge: 'badge-blue' },
-        { id: 'TRM-2026-079', tipo: 'Patente Municipal',          fecha: '15/07/2026', estado: 'Finalizado',  badge: 'badge-success' }
+        { id: 'TRM-2026-081', tipo: 'Permiso de Construcción', fecha: '28/07/2026', estado: 'Aprobado', badge: 'badge-success' },
+        { id: 'TRM-2026-082', tipo: 'Certificado de Avalúos', fecha: '01/08/2026', estado: 'En Revisión', badge: 'badge-blue' },
+        { id: 'TRM-2026-079', tipo: 'Patente Municipal', fecha: '15/07/2026', estado: 'Finalizado', badge: 'badge-success' }
     ],
 
     pagos: [
-        { id: 'PAG-101', categoria:'predial', tipo: 'Impuesto Predial Urbano',   cuenta: 'Predio N.° 04-01-55-12', monto: 32.50,  vence: '30/08/2026', icono: 'fa-house' },
-        { id: 'PAG-102', categoria:'agua',    tipo: 'Servicio de Agua Potable',  cuenta: 'Medidor N.° 99821',       monto: 13.00,  vence: '15/08/2026', icono: 'fa-faucet-drip' },
-        { id: 'PAG-103', categoria:'patente', tipo: 'Patente Comercial 2026',    cuenta: 'RUC 0401234567001',       monto: 45.00,  vence: '30/09/2026', icono: 'fa-store' },
-        { id: 'PAG-104', categoria:'tasa',    tipo: 'Tasa de Recolección',       cuenta: 'Contribuyente 1189',      monto: 8.50,   vence: '31/08/2026', icono: 'fa-trash-can' },
-        { id: 'PAG-105', categoria:'multa',   tipo: 'Multa por Infracción',      cuenta: 'Acta N.° 2026-440',       monto: 22.00,  vence: '10/08/2026', icono: 'fa-gavel' }
+        { id: 'PAG-101', categoria: 'predial', tipo: 'Impuesto Predial Urbano', cuenta: 'Predio N.° 04-01-55-12', monto: 32.50, vence: '30/08/2026', icono: 'fa-house' },
+        { id: 'PAG-102', categoria: 'agua', tipo: 'Servicio de Agua Potable', cuenta: 'Medidor N.° 99821', monto: 13.00, vence: '15/08/2026', icono: 'fa-faucet-drip' },
+        { id: 'PAG-103', categoria: 'patente', tipo: 'Patente Comercial 2026', cuenta: 'RUC 0401234567001', monto: 45.00, vence: '30/09/2026', icono: 'fa-store' },
+        { id: 'PAG-104', categoria: 'tasa', tipo: 'Tasa de Recolección', cuenta: 'Contribuyente 1189', monto: 8.50, vence: '31/08/2026', icono: 'fa-trash-can' },
+        { id: 'PAG-105', categoria: 'multa', tipo: 'Multa por Infracción', cuenta: 'Acta N.° 2026-440', monto: 22.00, vence: '10/08/2026', icono: 'fa-gavel' }
     ],
 
     reportes: [
-        { id: 'REP-1024', cat: 'Luminaria Dañada',    ubi: 'Barrio San José, calle 10 de Agosto',  fecha: '25/07/2026', estado: 'Atendido',  badge: 'badge-success', prioridad: 'Media' },
-        { id: 'REP-1019', cat: 'Bache en vía pública', ubi: 'Av. Montúfar frente a la escuela',   fecha: '18/07/2026', estado: 'En proceso', badge: 'badge-blue',    prioridad: 'Alta' }
+        { id: 'REP-1024', cat: 'Luminaria Dañada', ubi: 'Barrio San José, calle 10 de Agosto', fecha: '25/07/2026', estado: 'Atendido', badge: 'badge-success', prioridad: 'Media' },
+        { id: 'REP-1019', cat: 'Bache en vía pública', ubi: 'Av. Montúfar frente a la escuela', fecha: '18/07/2026', estado: 'En proceso', badge: 'badge-blue', prioridad: 'Alta' }
     ],
 
     rural: [
@@ -111,7 +111,7 @@ const DB = {
         },
         {
             img: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=600&q=80',
-            titulo: 'Laguna de Yahuarcocha', categoria: 'naturaleza',
+            titulo: 'Laguna del Salado', categoria: 'naturaleza',
             subtitulo: 'Lago Andino · Pesca · Deportes',
             desc: 'Hermosa laguna de altura en los páramos del cantón, ideal para la pesca deportiva, canotaje y observación de aves.',
             horario: 'Siempre accesible',
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fecha en hero
     const heroDate = document.getElementById('hero-date');
     if (heroDate) {
-        const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+        const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         heroDate.textContent = new Date().toLocaleDateString('es-EC', opts);
     }
 });
@@ -296,17 +296,17 @@ function navToPage(pageId) {
     if (page) page.classList.add('active');
 
     const labels = {
-        'page-dashboard':     'Inicio',
-        'page-chat':          'SanGa Asistente',
-        'page-tramites':      'Trámites Municipales',
-        'page-pagos':         'Pagos en Línea',
-        'page-reportes':      'Reportes Ciudadanos',
-        'page-consultas':     'Buscador Municipal',
-        'page-rural':         'SanGa Rural',
-        'page-turismo':       'Turismo · Montúfar',
-        'page-eventos':       'Eventos y Agenda',
+        'page-dashboard': 'Inicio',
+        'page-chat': 'SanGa Asistente',
+        'page-tramites': 'Trámites Municipales',
+        'page-pagos': 'Pagos en Línea',
+        'page-reportes': 'Reportes Ciudadanos',
+        'page-consultas': 'Buscador Municipal',
+        'page-rural': 'SanGa Rural',
+        'page-turismo': 'Turismo · Montúfar',
+        'page-eventos': 'Eventos y Agenda',
         'page-transparencia': 'Municipio Transparente',
-        'page-perfil':        'Mi Perfil'
+        'page-perfil': 'Mi Perfil'
     };
     const el = document.getElementById('topbar-title');
     if (el && labels[pageId]) el.textContent = labels[pageId];
@@ -342,19 +342,19 @@ function renderAllModules() {
 function updateProfileDisplay() {
     const u = DB.usuario;
     const initials = (u.nombre[0] + (u.apellido ? u.apellido[0] : '')).toUpperCase();
-    const nameEl   = document.getElementById('profile-name-display');
-    const cedEl    = document.getElementById('profile-cedula-display');
-    const emEl     = document.getElementById('profile-email-display');
-    const avEl     = document.getElementById('profile-avatar-display');
-    const topAv    = document.querySelector('.topbar-right .avatar-sm');
-    const sbAv     = document.getElementById('sb-avatar');
-    const sbName   = document.getElementById('sb-user-name');
+    const nameEl = document.getElementById('profile-name-display');
+    const cedEl = document.getElementById('profile-cedula-display');
+    const emEl = document.getElementById('profile-email-display');
+    const avEl = document.getElementById('profile-avatar-display');
+    const topAv = document.querySelector('.topbar-right .avatar-sm');
+    const sbAv = document.getElementById('sb-avatar');
+    const sbName = document.getElementById('sb-user-name');
     if (nameEl) nameEl.textContent = u.nombre + ' ' + (u.apellido || '');
-    if (cedEl)  cedEl.innerHTML  = `<i class="fa-solid fa-id-card"></i> C.I. ${u.cedula}`;
-    if (emEl)   emEl.innerHTML   = `<i class="fa-solid fa-envelope"></i> ${u.correo}`;
-    if (avEl)   avEl.textContent = initials;
-    if (topAv)  topAv.textContent = initials;
-    if (sbAv)   sbAv.textContent  = initials;
+    if (cedEl) cedEl.innerHTML = `<i class="fa-solid fa-id-card"></i> C.I. ${u.cedula}`;
+    if (emEl) emEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${u.correo}`;
+    if (avEl) avEl.textContent = initials;
+    if (topAv) topAv.textContent = initials;
+    if (sbAv) sbAv.textContent = initials;
     if (sbName) sbName.textContent = u.nombre + ' ' + (u.apellido || '');
 }
 
@@ -650,51 +650,117 @@ function showTyping() {
 }
 function removeTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
 
-function analyzeIntent(q) {
-    // ── Pagos ──
-    if (/agua|pagar|predial|deuda|cuanto debo|patente|multa|tasa/.test(q)) {
-        appendMsg(`<p>Claro, puedo ayudarte con eso. 💧 Verifiqué tu cuenta y tienes <strong>${DB.pagos.length} obligaciones pendientes</strong>.</p><p>Puedes revisarlas y pagarlas en línea con tarjeta o transferencia directamente en SanGa.</p>`, 'bot');
+function analyzeIntent(qRaw) {
+    const q = qRaw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    // 1. Deep DB Search
+    let matchedItem = null;
+    let matchedType = '';
+
+    // Helper para buscar en arreglos con titulo o desc
+    const searchIn = (arr, type) => {
+        for (let i = 0; i < arr.length; i++) {
+            const item = arr[i];
+            const text = ((item.titulo || '') + ' ' + (item.desc || '') + ' ' + (item.detalle || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            // Si la query tiene más de 4 letras y está contenida en el texto, o al reves
+            if (q.length > 4 && (text.includes(q) || q.split(' ').some(w => w.length > 4 && text.includes(w)))) {
+                matchedItem = item;
+                matchedType = type;
+                return true;
+            }
+        }
+        return false;
+    };
+
+    if (searchIn(DB.turismo, 'turismo')) { }
+    else if (searchIn(DB.rural, 'rural')) { }
+    else if (searchIn(DB.eventos, 'eventos')) { }
+
+    if (matchedItem) {
+        if (matchedType === 'turismo') {
+            appendMsg(`<p>Encontré información exacta sobre lo que buscas: <strong>${matchedItem.titulo}</strong>.</p><p><em>${matchedItem.desc}</em></p>`, 'bot');
+            setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-turismo')"><i class="fa-solid fa-map-location-dot"></i> Ver en Turismo</button>`, 'bot'), 400);
+            return;
+        } else if (matchedType === 'rural') {
+            appendMsg(`<p>Tengo información de SanGa Rural sobre <strong>${matchedItem.titulo}</strong>: ${matchedItem.desc}</p>`, 'bot');
+            setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-rural')"><i class="fa-solid fa-tractor"></i> Ir a Rural</button>`, 'bot'), 400);
+            return;
+        } else if (matchedType === 'eventos') {
+            appendMsg(`<p>¡Claro! El evento <strong>${matchedItem.titulo}</strong> será el ${matchedItem.dia} de ${matchedItem.mes} en ${matchedItem.lugar}.</p>`, 'bot');
+            setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-eventos')"><i class="fa-solid fa-calendar-days"></i> Ver Eventos</button>`, 'bot'), 400);
+            return;
+        }
+    }
+
+    // 2. Scoring de intenciones (Bag of Words)
+    const intents = {
+        pagos: { words: ['pagar', 'pago', 'predial', 'deuda', 'debo', 'patente', 'multa', 'tasa', 'agua', 'dinero'], score: 0 },
+        turismo: { words: ['turismo', 'visitar', 'viajar', 'conocer', 'lugar', 'lugares', 'bosque', 'cascada', 'laguna', 'gastronomia', 'iglesia'], score: 0 },
+        rural: { words: ['rural', 'campo', 'agricultura', 'agricola', 'semillas', 'brigada', 'medica', 'parroquia', 'comunidad'], score: 0 },
+        eventos: { words: ['evento', 'fiesta', 'concierto', 'feria', 'carrera', 'sesion', 'agenda', 'fin de semana'], score: 0 },
+        reportes: { words: ['reportar', 'bache', 'luminaria', 'basura', 'daño', 'problema', 'calle', 'roto', 'fuga', 'parque'], score: 0 },
+        tramites: { words: ['tramite', 'permiso', 'certificado', 'linea', 'fabrica', 'solicitud', 'documento', 'sacar'], score: 0 },
+        emergencia: { words: ['emergencia', 'ayuda', 'urgente', 'accidente', 'incendio', 'deslizamiento', 'policia', 'ambulancia'], score: 0 },
+        saludo: { words: ['hola', 'buenos', 'buenas', 'saludos', 'gracias', 'ola'], score: 0 }
+    };
+
+    const words = q.split(/\s+/);
+    words.forEach(w => {
+        if (w.length < 3) return;
+        for (const key in intents) {
+            if (intents[key].words.some(kw => kw.includes(w) || w.includes(kw))) {
+                intents[key].score += 1;
+            }
+        }
+    });
+
+    let bestIntent = null;
+    let maxScore = 0;
+    for (const key in intents) {
+        if (intents[key].score > maxScore) {
+            maxScore = intents[key].score;
+            bestIntent = key;
+        }
+    }
+
+    // 3. Responder basado en la intención ganadora
+    if (bestIntent === 'pagos') {
+        appendMsg(`<p>Entendido. 💧 He verificado tu cuenta y tienes <strong>${DB.pagos.length} obligaciones pendientes</strong>.</p><p>Puedes revisarlas y pagarlas en línea de forma segura.</p>`, 'bot');
         setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-pagos')"><i class="fa-solid fa-wallet"></i> Ir a Mis Pagos</button>`, 'bot'), 400);
-    }
-    // ── Turismo ──
-    else if (/turismo|visitar|lugar|bosque|arrayane|cascada|laguna|gastronomia|iglesia|artesania|conocer|montufar/.test(q)) {
+    } else if (bestIntent === 'turismo') {
         const t = DB.turismo[Math.floor(Math.random() * DB.turismo.length)];
-        appendMsg(`<p>🏔️ ¡Montúfar es un destino increíble! Te recomiendo visitar el <strong>${t.titulo}</strong>: <em>${t.desc}</em></p><p>¿Quieres que te cuente sobre más lugares o necesitas cómo llegar?</p>`, 'bot');
-        setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-turismo')"><i class="fa-solid fa-map-location-dot"></i> Explorar Turismo Completo</button>`, 'bot'), 400);
-    }
-    // ── Rural ──
-    else if (/rural|parroquia|comunidad|campo|agricola|semilla|brigada|capacitacion|feria|social/.test(q)) {
-        appendMsg(`<p>🌾 SanGa Rural está aquí para apoyarte. Tenemos servicios de <strong>mantenimiento vial, apoyo agrícola, brigadas médicas, capacitaciones y programas sociales</strong> para todas las parroquias del cantón.</p>`, 'bot');
+        appendMsg(`<p>🏔️ ¡Montúfar tiene lugares increíbles! Uno que te sugiero es <strong>${t.titulo}</strong>.</p><p>¿Quieres descubrir más opciones turísticas?</p>`, 'bot');
+        setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-turismo')"><i class="fa-solid fa-map-location-dot"></i> Explorar Turismo</button>`, 'bot'), 400);
+    } else if (bestIntent === 'rural') {
+        appendMsg(`<p>🌾 SanGa Rural apoya al sector agrícola y comunitario con <strong>mantenimiento vial, semillas, brigadas médicas y más</strong>.</p>`, 'bot');
         setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-rural')"><i class="fa-solid fa-tractor"></i> Ver Servicios Rurales</button>`, 'bot'), 400);
-    }
-    // ── Eventos ──
-    else if (/evento|fiesta|concierto|feria|carrera|sesion|concejo|agenda|fin de semana/.test(q)) {
+    } else if (bestIntent === 'eventos') {
         const ev = DB.eventos[0];
-        appendMsg(`<p>🎉 ¡Hay varios eventos próximos! El más cercano es <strong>${ev.titulo}</strong> el <strong>${ev.dia} de ${ev.mes}</strong> en ${ev.lugar}.</p><p>¿Te activo un recordatorio?</p>`, 'bot');
-        setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-eventos')"><i class="fa-solid fa-calendar-days"></i> Ver Todos los Eventos</button>`, 'bot'), 400);
-    }
-    // ── Reportes ──
-    else if (/bache|luminaria|basura|reporte|arbol|fuga|señal|parque|daño|problema/.test(q)) {
-        appendMsg(`<p>📸 Para reportar un problema, necesito que me indiques <strong>la categoría</strong> y si puedes <strong>tomar una foto</strong>. El Municipio atenderá tu reporte con número de seguimiento.</p>`, 'bot');
-        setTimeout(() => appendMsg(`<button class="btn btn-outline w-100" onclick="openModal('modal-nuevo-reporte')"><i class="fa-solid fa-camera-retro"></i> Crear Nuevo Reporte</button>`, 'bot'), 400);
-    }
-    // ── Trámites ──
-    else if (/tramite|permiso|certificado|linea|fabrica|patente|solicitud/.test(q)) {
-        appendMsg(`<p>📋 Puedo ayudarte a iniciar un trámite municipal. Disponemos de: <strong>Certificado de Avalúos, Permiso de Construcción, Línea de Fábrica, Patente Municipal</strong> y más.</p><p>¿Cuál necesitas?</p>`, 'bot');
-        setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-tramites')"><i class="fa-solid fa-file-signature"></i> Ir a Trámites</button>`, 'bot'), 400);
-    }
-    // ── Emergencia ──
-    else if (/emergencia|ayuda|urgente|accidente|incendio|deslizamiento/.test(q)) {
-        appendMsg(`<p>🚨 Entiendo que hay una situación urgente. Activa la alerta de emergencia para que el Municipio y las autoridades sean notificados <strong>de inmediato</strong> con tu ubicación.</p>`, 'bot');
+        appendMsg(`<p>🎉 ¡Siempre hay algo que hacer! El evento más próximo es <strong>${ev.titulo}</strong> el ${ev.dia} de ${ev.mes}.</p>`, 'bot');
+        setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-eventos')"><i class="fa-solid fa-calendar-days"></i> Ver Agenda</button>`, 'bot'), 400);
+    } else if (bestIntent === 'reportes') {
+        appendMsg(`<p>📸 Para procesar tu reporte ciudadano, por favor indícame la categoría del problema y adjunta una foto si es posible.</p>`, 'bot');
+        setTimeout(() => appendMsg(`<button class="btn btn-outline w-100" onclick="openModal('modal-nuevo-reporte')"><i class="fa-solid fa-camera-retro"></i> Crear Reporte</button>`, 'bot'), 400);
+    } else if (bestIntent === 'tramites') {
+        appendMsg(`<p>📋 Puedo guiarte para sacar permisos de construcción, línea de fábrica, certificados de avalúos o patentes, todo 100% en línea.</p>`, 'bot');
+        setTimeout(() => appendMsg(`<button class="btn btn-primary w-100" onclick="navToPage('page-tramites')"><i class="fa-solid fa-file-signature"></i> Ver Trámites</button>`, 'bot'), 400);
+    } else if (bestIntent === 'emergencia') {
+        appendMsg(`<p>🚨 Si esto es una emergencia real, activa la alerta de inmediato para notificar a las autoridades con tu ubicación GPS.</p>`, 'bot');
         setTimeout(() => appendMsg(`<button class="btn" style="background:var(--danger);color:#fff;width:100%;" onclick="reportEmergency()"><i class="fa-solid fa-siren-on"></i> ACTIVAR ALERTA DE EMERGENCIA</button>`, 'bot'), 400);
-    }
-    // ── Saludo / General ──
-    else if (/hola|buenos|buenas|gracias|saludos/.test(q)) {
-        appendMsg(`<p>¡Hola! 😊 Es un gusto atenderte. Soy SanGa, tu asistente del <strong>Municipio de Montúfar</strong>. Puedo ayudarte con trámites, pagos, reportes, turismo, eventos o cualquier consulta del cantón.</p><p>¿En qué te puedo ayudar hoy?</p>`, 'bot');
-    }
-    // ── Fallback ──
-    else {
-        appendMsg(`<p>Entendido. Para darte la mejor ayuda, podrías decirme si necesitas algo relacionado con: <em>trámites, pagos, turismo, eventos rurales o reportar un problema</em>.</p><p>Estoy aquí para lo que necesites. 🙏</p>`, 'bot');
+    } else if (bestIntent === 'saludo') {
+        appendMsg(`<p>¡Hola! 😊 Soy SanGa, la inteligencia artificial del <strong>Municipio de Montúfar</strong>. Estoy entrenado para entender tus consultas sobre turismo, pagos, reportes, trámites y más. ¿En qué te ayudo?</p>`, 'bot');
+    } else {
+        // Fallback dinámico inteligente
+        appendMsg(`<p>He analizado tu consulta pero necesito un poco más de contexto. ¿Te refieres a realizar un <strong>Trámite</strong>, revisar <strong>Pagos pendientes</strong>, o necesitas información sobre el <strong>Cantón</strong>?</p>`, 'bot');
+        setTimeout(() => {
+            appendMsg(`
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                    <button class="btn btn-outline" style="flex:1; font-size:0.8rem; padding:8px;" onclick="navToPage('page-tramites')">Trámites</button>
+                    <button class="btn btn-outline" style="flex:1; font-size:0.8rem; padding:8px;" onclick="navToPage('page-pagos')">Pagos</button>
+                    <button class="btn btn-outline" style="flex:1; font-size:0.8rem; padding:8px;" onclick="navToPage('page-turismo')">Turismo</button>
+                </div>
+            `, 'bot');
+        }, 400);
     }
 }
 
@@ -708,7 +774,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('active')
 function submitTramite(e) {
     e.preventDefault();
     const tipo = document.getElementById('tramite-tipo').value;
-    DB.tramites.unshift({ id: `TRM-2026-${100 + Math.floor(Math.random()*800)}`, tipo, fecha: new Date().toLocaleDateString('es-EC'), estado: 'Recibido', badge: 'badge-blue' });
+    DB.tramites.unshift({ id: `TRM-2026-${100 + Math.floor(Math.random() * 800)}`, tipo, fecha: new Date().toLocaleDateString('es-EC'), estado: 'Recibido', badge: 'badge-blue' });
     saveDB();
     renderTramites();
     closeModal('modal-nuevo-tramite');
@@ -720,7 +786,7 @@ function submitTramite(e) {
 function submitReporte(e) {
     e.preventDefault();
     const cat = document.getElementById('reporte-cat').value;
-    DB.reportes.unshift({ id: `REP-${1000 + Math.floor(Math.random()*8000)}`, cat, ubi: 'San Gabriel (GPS detectado)', fecha: new Date().toLocaleDateString('es-EC'), estado: 'Enviado', badge: 'badge-blue', prioridad: 'Media' });
+    DB.reportes.unshift({ id: `REP-${1000 + Math.floor(Math.random() * 8000)}`, cat, ubi: 'San Gabriel (GPS detectado)', fecha: new Date().toLocaleDateString('es-EC'), estado: 'Enviado', badge: 'badge-blue', prioridad: 'Media' });
     saveDB();
     renderReportes();
     closeModal('modal-nuevo-reporte');
@@ -742,10 +808,10 @@ function openPaymentModal(id, monto, tipo) {
 }
 
 function switchPayTab(tab) {
-    const card     = document.getElementById('pay-view-card');
+    const card = document.getElementById('pay-view-card');
     const transfer = document.getElementById('pay-view-transfer');
-    const tCard    = document.getElementById('tab-card');
-    const tTrans   = document.getElementById('tab-transfer');
+    const tCard = document.getElementById('tab-card');
+    const tTrans = document.getElementById('tab-transfer');
     if (tab === 'card') {
         card.classList.remove('d-none');
         transfer.classList.add('d-none');
@@ -767,9 +833,9 @@ function formatCard(input) {
 
 function updateCardPreview() {
     const name = document.getElementById('card-name').value.toUpperCase() || 'TITULAR';
-    const exp  = document.getElementById('card-exp').value || 'MM/AA';
+    const exp = document.getElementById('card-exp').value || 'MM/AA';
     document.getElementById('cp-name').textContent = name;
-    document.getElementById('cp-exp').textContent  = exp;
+    document.getElementById('cp-exp').textContent = exp;
 }
 
 function confirmPayment(method) {
@@ -795,8 +861,8 @@ function confirmPayment(method) {
 // ── RECIBO ──
 function generarRecibo(method) {
     const now = new Date();
-    const num = `REC-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${Math.floor(Math.random()*90000+10000)}`;
-    const fecha = now.toLocaleDateString('es-EC', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const num = `REC-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${Math.floor(Math.random() * 90000 + 10000)}`;
+    const fecha = now.toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     const methodLabel = method === 'card' ? 'Tarjeta de Crédito/Débito' : 'Transferencia Bancaria';
 
     document.getElementById('recibo-content').innerHTML = `
@@ -874,19 +940,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (/[0-9]/.test(val)) score++;
             if (/[^A-Za-z0-9]/.test(val)) score++;
 
-            const fill  = document.getElementById('strength-fill');
+            const fill = document.getElementById('strength-fill');
             const label = document.getElementById('strength-label');
             const levels = [
-                { w: '0%',   bg: '',                       text: '' },
-                { w: '25%',  bg: 'var(--danger)',           text: '⚠ Muy débil' },
-                { w: '50%',  bg: 'var(--warning)',          text: '~ Débil' },
-                { w: '75%',  bg: '#f59e0b',                 text: '✔ Aceptable' },
-                { w: '100%', bg: 'var(--accent)',           text: '✔✔ Segura' }
+                { w: '0%', bg: '', text: '' },
+                { w: '25%', bg: 'var(--danger)', text: '⚠ Muy débil' },
+                { w: '50%', bg: 'var(--warning)', text: '~ Débil' },
+                { w: '75%', bg: '#f59e0b', text: '✔ Aceptable' },
+                { w: '100%', bg: 'var(--accent)', text: '✔✔ Segura' }
             ];
-            fill.style.width      = levels[score].w;
+            fill.style.width = levels[score].w;
             fill.style.background = levels[score].bg;
-            label.textContent     = levels[score].text;
-            label.style.color     = levels[score].bg;
+            label.textContent = levels[score].text;
+            label.style.color = levels[score].bg;
         });
     }
 });
@@ -894,9 +960,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function regNextStep(current) {
     // Validación por paso
     if (current === 1) {
-        const cedula    = document.getElementById('reg-cedula').value.trim();
-        const nombre    = document.getElementById('reg-nombre').value.trim();
-        const apellido  = document.getElementById('reg-apellido').value.trim();
+        const cedula = document.getElementById('reg-cedula').value.trim();
+        const nombre = document.getElementById('reg-nombre').value.trim();
+        const apellido = document.getElementById('reg-apellido').value.trim();
         const parroquia = document.getElementById('reg-parroquia').value;
         if (!cedula || cedula.length !== 10 || isNaN(cedula)) {
             showToast('Ingresa una cédula válida de 10 dígitos.', 'err'); return;
@@ -911,8 +977,8 @@ function regNextStep(current) {
 
     if (current === 2) {
         const email = document.getElementById('reg-email').value.trim();
-        const tel   = document.getElementById('reg-telefono').value.trim();
-        const pass  = document.getElementById('reg-pass').value;
+        const tel = document.getElementById('reg-telefono').value.trim();
+        const pass = document.getElementById('reg-pass').value;
         const pass2 = document.getElementById('reg-pass2').value;
         if (!email || !email.includes('@')) {
             showToast('Ingresa un correo electrónico válido.', 'err'); return;
@@ -936,9 +1002,9 @@ function regNextStep(current) {
     showRegPaso(nextPaso);
 
     // Marcar dot actual como done y activar el siguiente
-    const curDot  = document.getElementById(`step-dot-${current}`);
+    const curDot = document.getElementById(`step-dot-${current}`);
     const nextDot = document.getElementById(`step-dot-${nextPaso}`);
-    if (curDot)  { curDot.classList.remove('active'); curDot.classList.add('done'); }
+    if (curDot) { curDot.classList.remove('active'); curDot.classList.add('done'); }
     if (nextDot) nextDot.classList.add('active');
 }
 
@@ -946,14 +1012,14 @@ function regPrevStep(current) {
     const prevPaso = current - 1;
     showRegPaso(prevPaso);
 
-    const curDot  = document.getElementById(`step-dot-${current}`);
+    const curDot = document.getElementById(`step-dot-${current}`);
     const prevDot = document.getElementById(`step-dot-${prevPaso}`);
-    if (curDot)  curDot.classList.remove('active');
+    if (curDot) curDot.classList.remove('active');
     if (prevDot) { prevDot.classList.remove('done'); prevDot.classList.add('active'); }
 }
 
 function showRegPaso(n) {
-    ['1','2','3','exito'].forEach(p => {
+    ['1', '2', '3', 'exito'].forEach(p => {
         const el = document.getElementById(`reg-paso-${p}`);
         if (el) el.classList.add('d-none');
     });
@@ -982,12 +1048,12 @@ function submitRegistro() {
     }
 
     // Guardar nuevo usuario en DB
-    const nombre   = document.getElementById('reg-nombre').value.trim();
+    const nombre = document.getElementById('reg-nombre').value.trim();
     const apellido = document.getElementById('reg-apellido').value.trim();
-    const cedula   = document.getElementById('reg-cedula').value.trim();
-    const email    = document.getElementById('reg-email').value.trim();
-    const tel      = document.getElementById('reg-telefono').value.trim();
-    const parr     = document.getElementById('reg-parroquia').value;
+    const cedula = document.getElementById('reg-cedula').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const tel = document.getElementById('reg-telefono').value.trim();
+    const parr = document.getElementById('reg-parroquia').value;
 
     DB.usuario = { nombre, apellido, cedula, correo: email, telefono: tel, parroquia: parr };
 
