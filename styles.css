@@ -5,10 +5,10 @@
 
 /* ── Tokens de Diseño ── */
 :root {
-    --primary:        #1a3a8f;
-    --primary-mid:    #2451b5;
-    --primary-light:  #4a7ce8;
-    --primary-ultra:  #e8effe;
+    --primary:        #0f172a;
+    --primary-mid:    #1e293b;
+    --primary-light:  #334155;
+    --primary-ultra:  #f1f5f9;
     --accent:         #0f9870;
     --accent-light:   #17c48e;
     --accent-ultra:   #e6f9f3;
@@ -55,10 +55,10 @@
 }
 
 [data-theme="dark"] {
-    --primary:       #4d8ef8;
-    --primary-mid:   #6aaaf7;
-    --primary-light: #92c0ff;
-    --primary-ultra: #172035;
+    --primary:       #334155;
+    --primary-mid:   #475569;
+    --primary-light: #94a3b8;
+    --primary-ultra: #020617;
     --accent:        #22d4a0;
     --accent-light:  #40e8b8;
     --accent-ultra:  #0d2820;
