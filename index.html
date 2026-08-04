@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SanGa – El Municipio de Montúfar en tus manos</title>
+    <meta name="description" content="Primera asistente digital del Gobierno Autónomo Descentralizado Municipal de Montúfar.">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div id="app-root">
+    <div id="toast-container"></div>
+
+    <!-- ============================================================
+         VISTA 1: LOGIN
+    ============================================================ -->
+    <div id="view-login" class="app-view active">
+        <div class="login-bg">
+            <div class="login-card">
+                <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" alt="Logo Municipio de Montúfar" class="login-logo">
+                <h1 class="login-brand">SANGA</h1>
+                <p class="login-subtitle">El Municipio de Montúfar en tus manos</p>
+                <form id="form-login" class="login-form">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-id-card"></i> Cédula de Identidad</label>
+                        <input type="text" id="login-cedula" placeholder="Ej. 0401234567" maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-lock"></i> Contraseña</label>
+                        <input type="password" id="login-pass" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large w-100"><i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar al Sistema</button>
+                </form>
+                <button class="btn-register" onclick="openModal('modal-registro')"><i class="fa-solid fa-user-plus"></i> ¿Eres nuevo? Crear mi cuenta ciudadana</button>
+                <div class="login-divider"><span>o también puedes</span></div>
+                <div class="login-options">
+                    <button class="btn btn-outline w-100" onclick="simulateBiometrics()"><i class="fa-solid fa-fingerprint"></i> Biometría / Rostro</button>
+                    <button class="btn btn-ghost w-100 mt-2" onclick="switchView('view-admin')"><i class="fa-solid fa-user-shield"></i> Soy Funcionario Municipal</button>
+                </div>
+                <p class="login-footer">Al ingresar aceptas nuestras <a href="#">Políticas de Privacidad y Protección de Datos</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         VISTA 2: CIUDADANO
+    ============================================================ -->
+    <div id="view-citizen" class="app-view layout-shell d-none">
+
+        <!-- Header Principal (Top Nav) -->
+        <header class="shell-header">
+            <!-- Tier 1: Brand & User Actions -->
+            <div class="sh-top-tier">
+                <div class="sh-brand">
+                    <div class="sb-logo-wrap">
+                        <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" alt="Logo">
+                        <span class="sb-online-dot"></span>
+                    </div>
+                    <div class="sb-brand-text">
+                        <span class="brand-name">SANGA</span>
+                        <span class="brand-sub">Montúfar · Digital</span>
+                    </div>
+                </div>
+
+                <div class="sh-actions">
+                    <button class="topbar-btn danger" onclick="reportEmergency()" title="Reportar Emergencia">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Emergencia</span>
+                    </button>
+                    <button class="topbar-icon" onclick="toggleTheme()" title="Cambiar Tema">
+                        <i class="fa-solid fa-circle-half-stroke"></i>
+                    </button>
+                    
+                    <div class="sh-user-card" onclick="openProfile()">
+                        <div class="sb-user-info">
+                            <strong id="sb-user-name">Juan Ciudadano</strong>
+                            <span>Verificado</span>
+                        </div>
+                        <div class="sb-user-avatar" id="sb-avatar">JC</div>
+                    </div>
+                    
+                    <button class="sb-logout-btn" onclick="logout()" title="Cerrar Sesión">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tier 2: Horizontal Navigation -->
+            <nav class="sh-nav-tier">
+                <div class="sh-nav-scroll">
+                    <button class="nav-btn active" data-page="page-dashboard">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-house-chimney"></i></span>
+                        <span class="nav-text">Inicio</span>
+                    </button>
+                    
+                    <button class="nav-btn nav-ai" data-page="page-chat">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-robot"></i></span>
+                        <span class="nav-text">SanGa IA</span>
+                        <span class="nav-ai-badge">IA</span>
+                    </button>
+
+                    <div class="nav-divider-v"></div>
+
+                    <button class="nav-btn" data-page="page-tramites">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-file-signature"></i></span>
+                        <span class="nav-text">Trámites</span>
+                    </button>
+                    <button class="nav-btn" data-page="page-pagos">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-wallet"></i></span>
+                        <span class="nav-text">Pagos</span>
+                        <span class="nav-notif">5</span>
+                    </button>
+                    <button class="nav-btn" data-page="page-consultas">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <span class="nav-text">Consultas</span>
+                    </button>
+                    <button class="nav-btn" data-page="page-reportes">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-camera-retro"></i></span>
+                        <span class="nav-text">Reportes</span>
+                    </button>
+
+                    <div class="nav-divider-v"></div>
+
+                    <button class="nav-btn" data-page="page-rural">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-tractor"></i></span>
+                        <span class="nav-text">Rural</span>
+                    </button>
+                    <button class="nav-btn" data-page="page-turismo">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-map-location-dot"></i></span>
+                        <span class="nav-text">Turismo</span>
+                    </button>
+                    <button class="nav-btn" data-page="page-eventos">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-calendar-days"></i></span>
+                        <span class="nav-text">Eventos</span>
+                    </button>
+                    <button class="nav-btn" data-page="page-transparencia">
+                        <span class="nav-icon-wrap"><i class="fa-solid fa-building-columns"></i></span>
+                        <span class="nav-text">Transparencia</span>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="shell-main">
+
+
+            <div class="pages-container">
+
+                <!-- ── DASHBOARD ── -->
+                <div id="page-dashboard" class="page active">
+                    <div class="hero-banner">
+                        <div class="hero-text">
+                            <p class="hero-date" id="hero-date"></p>
+                            <h1>¡Bienvenido, Juan!</h1>
+                            <p class="hero-sub">GAD Municipal de Montúfar · San Gabriel</p>
+                            <p class="hero-slogan">El Municipio no espera que vayas. Llega hasta ti.</p>
+                            <div class="hero-btns">
+                                <button class="btn btn-white" onclick="navToPage('page-chat')"><i class="fa-solid fa-robot"></i> Hablar con SanGa</button>
+                                <button class="btn btn-outline-white" onclick="navToPage('page-pagos')"><i class="fa-solid fa-wallet"></i> Mis Pagos</button>
+                            </div>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="hstat"><span class="hstat-n">2</span><span class="hstat-l">Trámites activos</span></div>
+                            <div class="hstat"><span class="hstat-n" style="color:#fbbf24;">2</span><span class="hstat-l">Pagos pendientes</span></div>
+                            <div class="hstat"><span class="hstat-n" style="color:#34d399;">1</span><span class="hstat-l">Reporte atendido</span></div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title mt-4">Accesos Rápidos</h3>
+                    <div class="shortcuts-grid">
+                        <div class="sc-card" onclick="navToPage('page-tramites')"><div class="sc-icon blue"><i class="fa-solid fa-file-contract"></i></div><span>Trámites</span></div>
+                        <div class="sc-card" onclick="navToPage('page-pagos')"><div class="sc-icon green"><i class="fa-solid fa-file-invoice-dollar"></i></div><span>Pagos</span></div>
+                        <div class="sc-card" onclick="navToPage('page-reportes')"><div class="sc-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div><span>Reportar</span></div>
+                        <div class="sc-card" onclick="navToPage('page-turismo')"><div class="sc-icon teal"><i class="fa-solid fa-mountain-sun"></i></div><span>Turismo</span></div>
+                        <div class="sc-card" onclick="navToPage('page-rural')"><div class="sc-icon brown"><i class="fa-solid fa-tractor"></i></div><span>Rural</span></div>
+                        <div class="sc-card" onclick="navToPage('page-eventos')"><div class="sc-icon purple"><i class="fa-solid fa-calendar-days"></i></div><span>Eventos</span></div>
+                        <div class="sc-card" onclick="navToPage('page-transparencia')"><div class="sc-icon navy"><i class="fa-solid fa-building-columns"></i></div><span>Obras</span></div>
+                        <div class="sc-card" onclick="navToPage('page-chat')"><div class="sc-icon primary"><i class="fa-solid fa-robot"></i></div><span>Asistente</span></div>
+                    </div>
+
+                    <h3 class="section-title mt-4">Noticias del Municipio</h3>
+                    <div class="news-grid">
+                        <div class="news-card" onclick="navToPage('page-eventos')">
+                            <div class="news-img" style="background-image:url('https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=600&q=80')"></div>
+                            <div class="news-body">
+                                <span class="chip chip-blue">Cultura</span>
+                                <h4>Fiestas de San Gabriel 2026</h4>
+                                <p>Celebra con nosotros el aniversario del cantón con desfiles, conciertos y exposiciones.</p>
+                                <span class="news-date"><i class="fa-regular fa-calendar"></i> 8 de septiembre, 2026</span>
+                            </div>
+                        </div>
+                        <div class="news-card" onclick="navToPage('page-transparencia')">
+                            <div class="news-img" style="background-image:url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80')"></div>
+                            <div class="news-body">
+                                <span class="chip chip-green">Obras</span>
+                                <h4>Regeneración del Parque Central</h4>
+                                <p>Los trabajos de regeneración urbana avanzan al 65%. Se prevé la inauguración en octubre.</p>
+                                <span class="news-date"><i class="fa-regular fa-calendar"></i> 1 de agosto, 2026</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="political-cierre">
+                        <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" alt="Logo" class="cierre-logo">
+                        <p><strong>Fabián Robles propone SanGa:</strong> la aplicación que pondrá los servicios municipales, los trámites y la información del cantón directamente en las manos de la ciudadanía. Porque modernizar Montúfar no significa alejarnos de nuestra gente, sino estar más cerca que nunca.</p>
+                        <p class="slogan-final">SANGA · Montúfar conectado. Municipio cercano.</p>
+                    </div>
+                </div>
+
+                <!-- ── CHAT IA ── -->
+                <div id="page-chat" class="page page-flex">
+                    <div class="chat-wrap">
+                        <div class="chat-hdr">
+                            <div class="chat-hdr-info">
+                                <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" alt="SanGa" class="chat-avatar">
+                                <div>
+                                    <strong>SanGa · Asistente Municipal</strong>
+                                    <span class="dot-online">● En línea</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-msgs" id="chat-messages">
+                            <div class="msg-row bot">
+                                <div class="msg-bubble">
+                                    <p>¡Hola, Juan! 👋 Soy <strong>SanGa</strong>, tu asistente digital del Municipio de Montúfar.</p>
+                                    <p>Puedes preguntarme sobre <em>trámites, pagos, turismo, eventos, el sector rural</em>, o escribir lo que necesitas. Estoy aquí para ayudarte.</p>
+                                </div>
+                            </div>
+                            <div class="chat-quick-btns">
+                                <button onclick="quickChat('¿Qué lugares turísticos tiene Montúfar?')">🏔️ Turismo</button>
+                                <button onclick="quickChat('Quiero pagar el agua')">💧 Pagar agua</button>
+                                <button onclick="quickChat('¿Qué eventos hay pronto?')">🎉 Eventos</button>
+                                <button onclick="quickChat('Necesito reportar un bache')">🚧 Reportar</button>
+                            </div>
+                        </div>
+                        <div class="chat-input-row">
+                            <button class="ci-btn" title="Adjuntar"><i class="fa-solid fa-paperclip"></i></button>
+                            <button class="ci-btn" title="Ubicación GPS"><i class="fa-solid fa-location-dot"></i></button>
+                            <input type="text" id="chat-input" placeholder="Escribe tu consulta a SanGa…">
+                            <button class="ci-btn primary" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="ci-btn" title="Voz"><i class="fa-solid fa-microphone"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── TRÁMITES ── -->
+                <div id="page-tramites" class="page">
+                    <div class="page-hdr">
+                        <div><h2>Mis Trámites</h2><p class="text-muted">Solicitudes y seguimiento de gestiones municipales</p></div>
+                        <button class="btn btn-primary" onclick="openModal('modal-nuevo-tramite')"><i class="fa-solid fa-plus"></i> Nuevo Trámite</button>
+                    </div>
+                    <div class="list-container" id="tramites-list"></div>
+                </div>
+
+                <!-- ── PAGOS ── -->
+                <div id="page-pagos" class="page">
+                    <div class="page-hdr">
+                        <div><h2>Pagos en Línea</h2><p class="text-muted">Gestiona tus obligaciones con el Municipio</p></div>
+                    </div>
+                    <!-- Selector de tipo de pago -->
+                    <h4 class="subsec-title">¿Qué deseas pagar?</h4>
+                    <div class="pay-type-grid" id="pay-type-grid">
+                        <div class="pay-type-card" onclick="filterPagos('predial')"><div class="pt-icon blue"><i class="fa-solid fa-house"></i></div><span>Impuesto Predial</span></div>
+                        <div class="pay-type-card" onclick="filterPagos('agua')"><div class="pt-icon teal"><i class="fa-solid fa-faucet-drip"></i></div><span>Agua Potable</span></div>
+                        <div class="pay-type-card" onclick="filterPagos('patente')"><div class="pt-icon orange"><i class="fa-solid fa-store"></i></div><span>Patente Comercial</span></div>
+                        <div class="pay-type-card" onclick="filterPagos('tasa')"><div class="pt-icon gray"><i class="fa-solid fa-receipt"></i></div><span>Tasas Municipales</span></div>
+                        <div class="pay-type-card" onclick="filterPagos('multa')"><div class="pt-icon red"><i class="fa-solid fa-gavel"></i></div><span>Multas</span></div>
+                        <div class="pay-type-card active-pay-type" onclick="filterPagos('all')"><div class="pt-icon navy"><i class="fa-solid fa-list-check"></i></div><span>Ver Todo</span></div>
+                    </div>
+                    <h4 class="subsec-title mt-3">Obligaciones Pendientes</h4>
+                    <div class="list-container" id="pagos-list"></div>
+                </div>
+
+                <!-- ── REPORTES ── -->
+                <div id="page-reportes" class="page">
+                    <div class="page-hdr">
+                        <div><h2>Reportes Ciudadanos</h2><p class="text-muted">Informa al Municipio sobre problemas en tu comunidad</p></div>
+                        <button class="btn btn-primary" onclick="openModal('modal-nuevo-reporte')"><i class="fa-solid fa-camera-retro"></i> Nuevo Reporte</button>
+                    </div>
+                    <div class="list-container" id="reportes-list"></div>
+                </div>
+
+                <!-- ── CONSULTAS ── -->
+                <div id="page-consultas" class="page">
+                    <div class="search-hero">
+                        <h2><i class="fa-solid fa-magnifying-glass"></i> Buscador Municipal</h2>
+                        <p>Certificados, deudas, ordenanzas, permisos y más</p>
+                        <div class="search-bar-lg">
+                            <input type="text" id="consulta-input" placeholder="Busca lo que necesitas…">
+                            <button onclick="runConsulta()"><i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="consult-chips mt-3">
+                        <span class="chip chip-outline" onclick="runQuickConsulta('Certificado de no adeudar')">Certificado de no adeudar</span>
+                        <span class="chip chip-outline" onclick="runQuickConsulta('Estado de trámite')">Estado de trámite</span>
+                        <span class="chip chip-outline" onclick="runQuickConsulta('Horario recolección de basura')">Horario recolección</span>
+                        <span class="chip chip-outline" onclick="runQuickConsulta('Requisitos permiso de construcción')">Permiso de construcción</span>
+                        <span class="chip chip-outline" onclick="runQuickConsulta('Uso de suelo')">Uso de suelo</span>
+                    </div>
+                    <div id="consulta-result" class="consulta-result d-none"></div>
+                </div>
+
+                <!-- ── RURAL ── -->
+                <div id="page-rural" class="page">
+                    <div class="section-banner rural-banner">
+                        <div class="sbanner-text">
+                            <h2>SanGa Rural</h2>
+                            <p>Servicios y atención para las parroquias y comunidades del cantón Montúfar</p>
+                        </div>
+                    </div>
+                    <div class="grid-cards mt-4" id="rural-list"></div>
+                </div>
+
+                <!-- ── TURISMO ── -->
+                <div id="page-turismo" class="page">
+                    <div class="section-banner turismo-banner">
+                        <div class="sbanner-text">
+                            <h2>Descubre Montúfar</h2>
+                            <p>Naturaleza, cultura, gastronomía e historia en el norte del Ecuador</p>
+                        </div>
+                    </div>
+                    <div class="turismo-filters mt-4">
+                        <button class="filter-btn active" onclick="filterTurismo('all', this)">Todos</button>
+                        <button class="filter-btn" onclick="filterTurismo('naturaleza', this)">Naturaleza</button>
+                        <button class="filter-btn" onclick="filterTurismo('cultura', this)">Cultura</button>
+                        <button class="filter-btn" onclick="filterTurismo('gastronomia', this)">Gastronomía</button>
+                    </div>
+                    <div class="grid-cards mt-3" id="turismo-list"></div>
+                </div>
+
+                <!-- ── EVENTOS ── -->
+                <div id="page-eventos" class="page">
+                    <div class="page-hdr">
+                        <div><h2>Eventos y Agenda</h2><p class="text-muted">Actividades culturales, deportivas e institucionales de Montúfar</p></div>
+                    </div>
+                    <div class="eventos-grid" id="eventos-list"></div>
+                </div>
+
+                <!-- ── TRANSPARENCIA ── -->
+                <div id="page-transparencia" class="page">
+                    <div class="page-hdr">
+                        <div><h2>Municipio Transparente</h2><p class="text-muted">Seguimiento público de obras y proyectos del GAD Montúfar</p></div>
+                    </div>
+                    <div class="list-container" id="obras-list"></div>
+                </div>
+
+                <!-- ── PERFIL ── -->
+                <div id="page-perfil" class="page" style="padding:0; max-width:none;">
+
+                    <!-- PERFIL con diseño premium -->
+                    <div class="profile-cover"></div>
+                    <div class="profile-card-wrap">
+                        <div class="profile-main-card">
+                            <div class="profile-avatar-wrap">
+                                <div class="avatar-xl" id="profile-avatar-display">JC</div>
+                                <button class="avatar-edit-btn" onclick="showToast('Función de foto de perfil próximamente', 'info')">
+                                    <i class="fa-solid fa-camera"></i>
+                                </button>
+                            </div>
+                            <div class="profile-info">
+                                <h2 id="profile-name-display">Juan Ciudadano</h2>
+                                <p id="profile-cedula-display"><i class="fa-solid fa-id-card"></i> C.I. 0401234567</p>
+                                <p id="profile-email-display"><i class="fa-solid fa-envelope"></i> juan.ciudadano@gmail.com</p>
+                                <span class="profile-badge"><i class="fa-solid fa-shield-check"></i> Ciudadano Verificado</span>
+                            </div>
+                            <div class="profile-stats-row">
+                                <div class="pstat" onclick="navToPage('page-tramites')">
+                                    <span class="pstat-n">3</span>
+                                    <span class="pstat-l">Trámites</span>
+                                </div>
+                                <div class="pstat" onclick="navToPage('page-pagos')">
+                                    <span class="pstat-n" style="color:var(--accent)">2</span>
+                                    <span class="pstat-l">Pendientes</span>
+                                </div>
+                                <div class="pstat" onclick="navToPage('page-reportes')">
+                                    <span class="pstat-n">2</span>
+                                    <span class="pstat-l">Reportes</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <p class="settings-label">MI CUENTA</p>
+                            <div class="settings-card">
+                                <div class="setting-row" onclick="showToast('Módulo de datos personales', 'info')">
+                                    <div class="srow-icon blue"><i class="fa-solid fa-user"></i></div>
+                                    <div class="srow-text"><strong>Datos Personales</strong><span>Nombre, cédula, dirección</span></div>
+                                    <i class="fa-solid fa-chevron-right srow-arrow"></i>
+                                </div>
+                                <div class="setting-row" onclick="navToPage('page-tramites')">
+                                    <div class="srow-icon green"><i class="fa-solid fa-file-contract"></i></div>
+                                    <div class="srow-text"><strong>Mis Trámites</strong><span>Historial y seguimiento</span></div>
+                                    <span class="badge badge-blue">3</span>
+                                    <i class="fa-solid fa-chevron-right srow-arrow"></i>
+                                </div>
+                                <div class="setting-row" onclick="navToPage('page-pagos')">
+                                    <div class="srow-icon orange"><i class="fa-solid fa-wallet"></i></div>
+                                    <div class="srow-text"><strong>Mis Pagos</strong><span>Historial de pagos y recibos</span></div>
+                                    <i class="fa-solid fa-chevron-right srow-arrow"></i>
+                                </div>
+                                <div class="setting-row" onclick="navToPage('page-reportes')">
+                                    <div class="srow-icon teal"><i class="fa-solid fa-camera-retro"></i></div>
+                                    <div class="srow-text"><strong>Mis Reportes</strong><span>Incidencias enviadas al Municipio</span></div>
+                                    <i class="fa-solid fa-chevron-right srow-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <p class="settings-label">PREFERENCIAS</p>
+                            <div class="settings-card">
+                                <div class="setting-row" onclick="toggleTheme()">
+                                    <div class="srow-icon navy"><i class="fa-solid fa-moon"></i></div>
+                                    <div class="srow-text"><strong>Modo Oscuro</strong><span>Cambia el tema de la aplicación</span></div>
+                                    <div class="toggle-switch ml-auto" id="dark-toggle"></div>
+                                </div>
+                                <div class="setting-row" onclick="showToast('Notificaciones configuradas', 'info')">
+                                    <div class="srow-icon purple"><i class="fa-solid fa-bell"></i></div>
+                                    <div class="srow-text"><strong>Notificaciones</strong><span>Alertas de trámites y pagos</span></div>
+                                    <i class="fa-solid fa-chevron-right srow-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <p class="settings-label">SEGURIDAD</p>
+                            <div class="settings-card">
+                                <div class="setting-row" onclick="showToast('Cambio de contraseña próximamente', 'info')">
+                                    <div class="srow-icon red"><i class="fa-solid fa-lock"></i></div>
+                                    <div class="srow-text"><strong>Cambiar Contraseña</strong><span>Última actualización: hace 3 meses</span></div>
+                                    <i class="fa-solid fa-chevron-right srow-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-logout-full" onclick="logout()">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
+                        </button>
+                    </div>
+
+
+            </div><!-- /pages-container -->
+
+            <!-- Bottom Nav Mobile -->
+            <nav class="bottom-nav">
+                <button class="nav-btn active" data-page="page-dashboard"><i class="fa-solid fa-house-chimney"></i><span>Inicio</span></button>
+                <button class="nav-btn" data-page="page-tramites"><i class="fa-solid fa-file-signature"></i><span>Trámites</span></button>
+                <button class="nav-btn fab-nav" data-page="page-chat"><div class="fab-circle"><i class="fa-solid fa-robot"></i></div></button>
+                <button class="nav-btn" data-page="page-pagos"><i class="fa-solid fa-wallet"></i><span>Pagos</span></button>
+                <button class="nav-btn" data-page="page-perfil"><i class="fa-solid fa-user"></i><span>Perfil</span></button>
+            </nav>
+        </main>
+    </div>
+
+    <!-- ============================================================
+         VISTA 3: ADMINISTRADOR
+    ============================================================ -->
+    <div id="view-admin" class="app-view layout-shell admin-mode d-none">
+        <aside class="shell-sidebar">
+            <div class="sidebar-brand">
+                <div><span class="brand-name">SANGA</span><span class="brand-sub">Administración</span></div>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-page="admin-dash"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+                <button class="nav-btn" data-page="admin-tramites"><i class="fa-solid fa-inbox"></i> Bandeja Trámites</button>
+                <button class="nav-btn" data-page="admin-reportes"><i class="fa-solid fa-triangle-exclamation"></i> Reportes Ciudadanos</button>
+                <div class="nav-divider"></div>
+                <button class="nav-btn text-danger" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
+            </nav>
+        </aside>
+        <main class="shell-main">
+            <header class="shell-topbar">
+                <h2 id="topbar-title-admin">Panel Administrativo · GAD Montúfar</h2>
+                <div class="topbar-right"><span class="chip chip-blue">Funcionario Municipal</span></div>
+            </header>
+            <div class="pages-container">
+                <div id="admin-dash" class="page active">
+                    <div class="kpi-grid">
+                        <div class="kpi-card"><div class="kpi-icon blue"><i class="fa-solid fa-file-circle-check"></i></div><div><p>Trámites Hoy</p><h2>45</h2></div></div>
+                        <div class="kpi-card"><div class="kpi-icon red"><i class="fa-solid fa-circle-exclamation"></i></div><div><p>Reportes Pendientes</p><h2 style="color:var(--danger)">12</h2></div></div>
+                        <div class="kpi-card"><div class="kpi-icon green"><i class="fa-solid fa-dollar-sign"></i></div><div><p>Recaudación Mensual</p><h2 style="color:var(--success)">$12,450</h2></div></div>
+                        <div class="kpi-card"><div class="kpi-icon teal"><i class="fa-solid fa-users"></i></div><div><p>Usuarios Activos</p><h2>328</h2></div></div>
+                    </div>
+                    <h3 class="section-title mt-4">Casos Recientes</h3>
+                    <table class="admin-table">
+                        <thead><tr><th>ID</th><th>Ciudadano</th><th>Tipo</th><th>Fecha</th><th>Estado</th></tr></thead>
+                        <tbody>
+                            <tr><td>REP-2026-102</td><td>Juan Ciudadano</td><td>Bache en vía pública</td><td>03/08/2026</td><td><span class="badge badge-warning">Pendiente</span></td></tr>
+                            <tr><td>TRM-2026-882</td><td>Ana Martínez</td><td>Permiso de Construcción</td><td>02/08/2026</td><td><span class="badge badge-blue">En Revisión</span></td></tr>
+                            <tr><td>PAG-2026-210</td><td>Luis Enríquez</td><td>Pago Impuesto Predial</td><td>01/08/2026</td><td><span class="badge badge-success">Procesado</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================================
+         MODALES
+    ============================================================ -->
+
+    <!-- Modal Nuevo Trámite -->
+    <div id="modal-nuevo-tramite" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-hdr">
+                <h3><i class="fa-solid fa-file-plus"></i> Iniciar Trámite Municipal</h3>
+                <button class="close-btn" onclick="closeModal('modal-nuevo-tramite')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-tramite" onsubmit="submitTramite(event)">
+                    <div class="form-group">
+                        <label>Tipo de Trámite</label>
+                        <select id="tramite-tipo" required>
+                            <option value="">— Seleccione el trámite —</option>
+                            <option value="Certificado de Avalúos">Certificado de Avalúos y Catastros</option>
+                            <option value="Permiso de Construcción">Permiso de Construcción</option>
+                            <option value="Línea de Fábrica">Línea de Fábrica</option>
+                            <option value="Permiso de Funcionamiento">Permiso de Funcionamiento</option>
+                            <option value="Patente Municipal">Patente Municipal</option>
+                            <option value="Certificado de no adeudar">Certificado de No Adeudar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Solicitante</label>
+                        <input type="text" placeholder="Nombre completo" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cédula de Identidad</label>
+                        <input type="text" placeholder="0401234567" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Documento de Identidad (PDF o imagen)</label>
+                        <input type="file" accept=".pdf,image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción / Observaciones</label>
+                        <textarea rows="3" placeholder="Detalle adicional de su solicitud…"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-paper-plane"></i> Enviar Solicitud</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Reporte -->
+    <div id="modal-nuevo-reporte" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-hdr">
+                <h3><i class="fa-solid fa-camera-retro"></i> Registrar Reporte Ciudadano</h3>
+                <button class="close-btn" onclick="closeModal('modal-nuevo-reporte')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-reporte" onsubmit="submitReporte(event)">
+                    <div class="form-group">
+                        <label>Categoría del Problema</label>
+                        <select id="reporte-cat" required>
+                            <option value="">— Seleccione categoría —</option>
+                            <option value="Bache en vía pública">Bache en vía pública</option>
+                            <option value="Fuga de Agua">Fuga de agua</option>
+                            <option value="Luminaria Dañada">Luminaria dañada</option>
+                            <option value="Acumulación de Basura">Acumulación de basura</option>
+                            <option value="Árbol Caído">Árbol caído / peligroso</option>
+                            <option value="Daño en Parque">Daño en parque o área verde</option>
+                            <option value="Señalización">Señalización deteriorada</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fotografía del Problema</label>
+                        <div class="upload-area">
+                            <i class="fa-solid fa-camera"></i>
+                            <p>Tomar foto o seleccionar imagen</p>
+                            <input type="file" accept="image/*" capture="environment" style="opacity:0;position:absolute;inset:0;cursor:pointer;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción del Problema</label>
+                        <textarea rows="2" placeholder="Describe brevemente el problema…" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-location-dot"></i> Ubicación (GPS detectado automáticamente)</label>
+                        <input type="text" value="Lat: 0.5973° N, Lng: 77.8341° O · San Gabriel, Montúfar" readonly style="background:var(--surface-alt);">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-paper-plane"></i> Enviar Reporte</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Pago (con tabs) -->
+    <div id="modal-pago" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-hdr">
+                <h3><i class="fa-solid fa-shield-halved"></i> Pasarela de Pago Segura</h3>
+                <button class="close-btn" onclick="closeModal('modal-pago')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="pago-info-row">
+                    <div>
+                        <p class="text-muted" style="font-size:0.8rem;">Servicio a pagar</p>
+                        <p id="pago-servicio" class="fw-600"></p>
+                    </div>
+                    <div class="pago-monto-box">
+                        <p class="text-muted" style="font-size:0.8rem;">Total</p>
+                        <p id="pago-monto" class="pago-monto-val"></p>
+                    </div>
+                </div>
+
+                <div class="pay-tabs-bar">
+                    <button class="pay-tab active" id="tab-card" onclick="switchPayTab('card')"><i class="fa-solid fa-credit-card"></i> Tarjeta</button>
+                    <button class="pay-tab" id="tab-transfer" onclick="switchPayTab('transfer')"><i class="fa-solid fa-building-columns"></i> Transferencia</button>
+                </div>
+
+                <!-- Tarjeta -->
+                <div id="pay-view-card" class="pay-view">
+                    <div class="card-preview" id="card-preview">
+                        <div class="cp-top"><span class="cp-bank">BANCO SANGA · VIRTUAL</span><i class="fa-brands fa-cc-visa cp-brand"></i></div>
+                        <div class="cp-num" id="cp-num">•••• •••• •••• ••••</div>
+                        <div class="cp-bot"><span id="cp-name">TITULAR</span><span id="cp-exp">MM/AA</span></div>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>Número de Tarjeta</label>
+                        <input type="text" id="card-num" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCard(this)">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div class="form-group">
+                            <label>Caducidad</label>
+                            <input type="text" id="card-exp" placeholder="MM/AA" maxlength="5" oninput="updateCardPreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>CVC</label>
+                            <input type="text" placeholder="•••" maxlength="3">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Titular</label>
+                        <input type="text" id="card-name" placeholder="Como aparece en la tarjeta" oninput="updateCardPreview()">
+                    </div>
+                    <div class="secure-badges">
+                        <span><i class="fa-solid fa-lock"></i> Cifrado SSL</span>
+                        <span><i class="fa-solid fa-shield-halved"></i> PCI DSS</span>
+                        <span><i class="fa-solid fa-check-circle"></i> 3D Secure</span>
+                    </div>
+                    <button class="btn btn-primary w-100 mt-3" onclick="confirmPayment('card')"><i class="fa-solid fa-lock"></i> Pagar con Tarjeta</button>
+                </div>
+
+                <!-- Transferencia -->
+                <div id="pay-view-transfer" class="pay-view d-none">
+                    <div class="bank-info-box">
+                        <p class="text-muted mb-1" style="font-size:0.8rem;">Realice la transferencia a la siguiente cuenta:</p>
+                        <table class="bank-detail-table">
+                            <tr><td>Banco</td><td><strong>BanEcuador / Banco del Estado</strong></td></tr>
+                            <tr><td>Cuenta</td><td><strong>1234567890 · Cta. Corriente</strong></td></tr>
+                            <tr><td>Beneficiario</td><td><strong>GAD Municipal de Montúfar</strong></td></tr>
+                            <tr><td>RUC</td><td><strong>0460000120001</strong></td></tr>
+                            <tr><td>Concepto</td><td><strong id="bank-concepto">—</strong></td></tr>
+                        </table>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>Número de Comprobante de Transferencia</label>
+                        <input type="text" id="comprobante-num" placeholder="Ej. TRF-20260803-00123">
+                    </div>
+                    <div class="form-group">
+                        <label>Adjuntar Comprobante (imagen o PDF)</label>
+                        <div class="upload-area">
+                            <i class="fa-solid fa-file-invoice"></i>
+                            <p>Subir captura de pantalla o PDF</p>
+                            <input type="file" accept="image/*,.pdf" style="opacity:0;position:absolute;inset:0;cursor:pointer;">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary w-100 mt-2" onclick="confirmPayment('transfer')"><i class="fa-solid fa-upload"></i> Enviar Comprobante</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Factura / Recibo -->
+    <div id="modal-recibo" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-hdr" style="background:var(--primary);color:white;">
+                <h3 style="color:white;"><i class="fa-solid fa-file-invoice"></i> Comprobante de Pago Oficial</h3>
+                <button class="close-btn" style="color:white;" onclick="closeModal('modal-recibo')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="recibo-content">
+                <!-- Inyectado por JS -->
+            </div>
+            <div style="padding:0 20px 20px; display:flex; gap:10px;">
+                <button class="btn btn-outline w-100" onclick="printRecibo()"><i class="fa-solid fa-print"></i> Imprimir</button>
+                <button class="btn btn-primary w-100" onclick="sendReciboEmail()"><i class="fa-solid fa-envelope"></i> Enviar al Correo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalle Turismo/Rural -->
+    <div id="modal-detalle" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-hdr">
+                <h3 id="detalle-titulo">Detalle</h3>
+                <button class="close-btn" onclick="closeModal('modal-detalle')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="detalle-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal Registro de Usuario -->
+    <div id="modal-registro" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-hdr">
+                <h3><i class="fa-solid fa-user-plus"></i> Crear Cuenta Ciudadana</h3>
+                <button class="close-btn" onclick="closeModal('modal-registro')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Pasos del registro -->
+            <div class="reg-steps" id="reg-steps">
+                <div class="reg-step active" id="step-dot-1"><span>1</span></div>
+                <div class="reg-step-line"></div>
+                <div class="reg-step" id="step-dot-2"><span>2</span></div>
+                <div class="reg-step-line"></div>
+                <div class="reg-step" id="step-dot-3"><span>3</span></div>
+            </div>
+
+            <div class="modal-body">
+                <!-- PASO 1: Datos personales -->
+                <div id="reg-paso-1" class="reg-paso active">
+                    <p class="reg-paso-titulo">Paso 1 · Datos Personales</p>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-id-card"></i> Cédula de Identidad *</label>
+                        <input type="text" id="reg-cedula" placeholder="0401234567" maxlength="10">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div class="form-group">
+                            <label>Nombres *</label>
+                            <input type="text" id="reg-nombre" placeholder="Juan Alberto">
+                        </div>
+                        <div class="form-group">
+                            <label>Apellidos *</label>
+                            <input type="text" id="reg-apellido" placeholder="García Torres">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-calendar"></i> Fecha de Nacimiento *</label>
+                        <input type="date" id="reg-fecha">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-map-marker-alt"></i> Parroquia de residencia *</label>
+                        <select id="reg-parroquia">
+                            <option value="">— Seleccione —</option>
+                            <option>San Gabriel (Urbano)</option>
+                            <option>La Paz</option>
+                            <option>Cristóbal Colón</option>
+                            <option>Chitan de Navarrete</option>
+                            <option>Fernández Salvador</option>
+                            <option>Piartal</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary w-100" onclick="regNextStep(1)"><i class="fa-solid fa-arrow-right"></i> Continuar</button>
+                </div>
+
+                <!-- PASO 2: Contacto y contraseña -->
+                <div id="reg-paso-2" class="reg-paso d-none">
+                    <p class="reg-paso-titulo">Paso 2 · Contacto y Acceso</p>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-envelope"></i> Correo Electrónico *</label>
+                        <input type="email" id="reg-email" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-phone"></i> Número de Teléfono / Celular *</label>
+                        <input type="tel" id="reg-telefono" placeholder="0981234567" maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-lock"></i> Contraseña *</label>
+                        <input type="password" id="reg-pass" placeholder="Mínimo 8 caracteres">
+                        <div class="pass-strength-bar"><div id="strength-fill" class="strength-fill"></div></div>
+                        <p id="strength-label" class="pass-strength-label"></p>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-lock"></i> Confirmar Contraseña *</label>
+                        <input type="password" id="reg-pass2" placeholder="Repite la contraseña">
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn btn-outline" onclick="regPrevStep(2)" style="flex:1;"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
+                        <button class="btn btn-primary" onclick="regNextStep(2)" style="flex:2;"><i class="fa-solid fa-arrow-right"></i> Continuar</button>
+                    </div>
+                </div>
+
+                <!-- PASO 3: OTP / Verificación -->
+                <div id="reg-paso-3" class="reg-paso d-none">
+                    <p class="reg-paso-titulo">Paso 3 · Verificación de Identidad</p>
+                    <div class="otp-box">
+                        <i class="fa-solid fa-shield-halved otp-icon"></i>
+                        <p>Hemos enviado un código de verificación de 6 dígitos al correo <strong id="otp-correo-label"></strong></p>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>Código OTP *</label>
+                        <div class="otp-inputs">
+                            <input type="text" maxlength="1" class="otp-digit" oninput="otpNext(this,0)">
+                            <input type="text" maxlength="1" class="otp-digit" oninput="otpNext(this,1)">
+                            <input type="text" maxlength="1" class="otp-digit" oninput="otpNext(this,2)">
+                            <input type="text" maxlength="1" class="otp-digit" oninput="otpNext(this,3)">
+                            <input type="text" maxlength="1" class="otp-digit" oninput="otpNext(this,4)">
+                            <input type="text" maxlength="1" class="otp-digit" oninput="otpNext(this,5)">
+                        </div>
+                        <p class="text-muted mt-2" style="font-size:0.78rem; text-align:center;">Para esta demo el código es: <strong>123456</strong></p>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn btn-outline" onclick="regPrevStep(3)" style="flex:1;"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
+                        <button class="btn btn-primary" onclick="submitRegistro()" style="flex:2;"><i class="fa-solid fa-check-circle"></i> Crear Cuenta</button>
+                    </div>
+                    <button class="btn btn-ghost w-100 mt-2" onclick="resendOtp()"><i class="fa-solid fa-rotate-right"></i> Reenviar código</button>
+                </div>
+
+                <!-- PASO 4: Éxito -->
+                <div id="reg-paso-exito" class="reg-paso d-none text-center">
+                    <div class="reg-success-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <h3 style="color:var(--accent); margin-bottom:8px;">¡Cuenta creada!</h3>
+                    <p id="reg-success-msg" style="color:var(--text-muted); margin-bottom:20px; font-size:0.9rem;"></p>
+                    <div class="reg-resumen" id="reg-resumen"></div>
+                    <button class="btn btn-primary w-100 mt-3" onclick="loginConNuevaCuenta()"><i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar Ahora</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /app-root -->
+<script src="app.js"></script>
+</body>
+</html>
