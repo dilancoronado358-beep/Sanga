@@ -214,7 +214,32 @@ const DB = {
 // 2. INICIALIZACIÓN Y ENRUTAMIENTO
 // ═══════════════════════════════════════════════════
 
+function loadDB() {
+    const saved = localStorage.getItem('sangaDB');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            if (parsed.tramites) DB.tramites = parsed.tramites;
+            if (parsed.pagos) DB.pagos = parsed.pagos;
+            if (parsed.reportes) DB.reportes = parsed.reportes;
+            if (parsed.usuario) DB.usuario = parsed.usuario;
+        } catch (e) {
+            console.error('Error loading DB', e);
+        }
+    }
+}
+
+function saveDB() {
+    localStorage.setItem('sangaDB', JSON.stringify({
+        tramites: DB.tramites,
+        pagos: DB.pagos,
+        reportes: DB.reportes,
+        usuario: DB.usuario
+    }));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    loadDB();
     // Login
     document.getElementById('form-login').addEventListener('submit', e => {
         e.preventDefault();
@@ -684,6 +709,7 @@ function submitTramite(e) {
     e.preventDefault();
     const tipo = document.getElementById('tramite-tipo').value;
     DB.tramites.unshift({ id: `TRM-2026-${100 + Math.floor(Math.random()*800)}`, tipo, fecha: new Date().toLocaleDateString('es-EC'), estado: 'Recibido', badge: 'badge-blue' });
+    saveDB();
     renderTramites();
     closeModal('modal-nuevo-tramite');
     showToast('Trámite enviado correctamente. Número de seguimiento generado.');
@@ -695,6 +721,7 @@ function submitReporte(e) {
     e.preventDefault();
     const cat = document.getElementById('reporte-cat').value;
     DB.reportes.unshift({ id: `REP-${1000 + Math.floor(Math.random()*8000)}`, cat, ubi: 'San Gabriel (GPS detectado)', fecha: new Date().toLocaleDateString('es-EC'), estado: 'Enviado', badge: 'badge-blue', prioridad: 'Media' });
+    saveDB();
     renderReportes();
     closeModal('modal-nuevo-reporte');
     showToast('Reporte enviado al departamento correspondiente. Se generó un número de seguimiento.');
@@ -754,6 +781,7 @@ function confirmPayment(method) {
     setTimeout(() => {
         // Remover pago de la DB
         DB.pagos = DB.pagos.filter(p => p.id !== pagoActual.id);
+        saveDB();
         renderPagos();
         const successMsg = method === 'transfer'
             ? 'Comprobante enviado. El pago está en verificación.'
