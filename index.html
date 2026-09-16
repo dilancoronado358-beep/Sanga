@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <body>
@@ -228,6 +230,18 @@
                                 <div class="sc-icon primary"><i class="fa-solid fa-robot"></i></div>
                                 <span>Asistente</span>
                             </div>
+                            <div class="sc-card" onclick="navToPage('page-turnos')">
+                                <div class="sc-icon red"><i class="fa-solid fa-ticket"></i></div>
+                                <span>Turnos</span>
+                            </div>
+                            <div class="sc-card" onclick="navToPage('page-votaciones')">
+                                <div class="sc-icon yellow"><i class="fa-solid fa-check-to-slot"></i></div>
+                                <span>Votaciones</span>
+                            </div>
+                            <div class="sc-card" onclick="navToPage('page-mapa')">
+                                <div class="sc-icon teal"><i class="fa-solid fa-map-location-dot"></i></div>
+                                <span>Mapa</span>
+                            </div>
                         </div>
 
                         <h3 class="section-title mt-4">Noticias del Municipio</h3>
@@ -270,7 +284,55 @@
                             <p class="slogan-final">SANGA · Montúfar conectado. Municipio cercano.</p>
                         </div>
                     </div>
+                    <!-- ── TURNOS VIRTUALES ── -->
+                    <div id="page-turnos" class="page d-none">
+                        <div class="page-hdr">
+                            <h2 class="page-title"><i class="fa-solid fa-ticket"></i> Turnos Virtuales</h2>
+                            <p class="text-sub" style="font-size:0.85rem;">Cero filas. Agenda tu visita al municipio.</p>
+                        </div>
+                        <button class="btn btn-primary w-100 mb-4" onclick="openModal('modal-nuevo-turno')"><i class="fa-solid fa-plus"></i> Agendar Nuevo Turno</button>
+                        
+                        <h3 class="section-title">Mis Turnos Activos</h3>
+                        <div id="turnos-list">
+                            <div class="text-center text-sub mt-4"><p>No tienes turnos agendados.</p></div>
+                        </div>
+                    </div>
 
+                    <!-- ── VOTACIONES / PRESUPUESTO ── -->
+                    <div id="page-votaciones" class="page d-none">
+                        <div class="page-hdr">
+                            <h2 class="page-title"><i class="fa-solid fa-check-to-slot"></i> Presupuesto Participativo</h2>
+                            <p class="text-sub" style="font-size:0.85rem;">Tu voz decide las próximas obras del municipio.</p>
+                        </div>
+                        
+                        <div class="votacion-card">
+                            <img src="https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?auto=format&fit=crop&w=800&q=80" class="votacion-img" alt="Proyecto 1">
+                            <h4>Construcción del Parque Norte</h4>
+                            <p>Creación de áreas verdes, juegos infantiles y canchas deportivas.</p>
+                            <button class="btn btn-primary w-100" id="btn-vot-1" onclick="votarProyecto(1)"><i class="fa-solid fa-thumbs-up"></i> Votar por este proyecto</button>
+                        </div>
+                        
+                        <div class="votacion-card">
+                            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80" class="votacion-img" alt="Proyecto 2">
+                            <h4>Remodelación Mercado Central</h4>
+                            <p>Modernización de los puestos de alimentos y parqueadero.</p>
+                            <button class="btn btn-outline w-100" id="btn-vot-2" onclick="votarProyecto(2)"><i class="fa-solid fa-thumbs-up"></i> Votar por este proyecto</button>
+                        </div>
+                        
+                        <h3 class="section-title mt-4">Resultados en Vivo</h3>
+                        <div style="background:var(--surface); padding:16px; border-radius:var(--r); border:1px solid var(--border-soft);">
+                            <canvas id="chart-votaciones"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- ── MAPA DE OBRAS ── -->
+                    <div id="page-mapa" class="page d-none">
+                        <div class="page-hdr">
+                            <h2 class="page-title"><i class="fa-solid fa-map-location-dot"></i> Mapa de Obras y Reportes</h2>
+                            <p class="text-sub" style="font-size:0.85rem;">Obras en ejecución y reportes atendidos.</p>
+                        </div>
+                        <div id="mapa-obras"></div>
+                    </div>
                     <!-- ── CHAT IA ── -->
                     <div id="page-chat" class="page page-flex">
                         <div class="chat-wrap">
@@ -598,6 +660,11 @@
                         <button class="nav-btn" data-page="page-perfil"><i
                                 class="fa-solid fa-user"></i><span>Perfil</span></button>
                     </nav>
+
+                    <!-- Botón Flotante SOS -->
+                    <button class="fab-sos pulse-animation" onclick="openModal('modal-sos')">
+                        <i class="fa-solid fa-phone-volume"></i> SOS
+                    </button>
             </main>
         </div>
 

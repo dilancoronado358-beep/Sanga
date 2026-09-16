@@ -408,10 +408,18 @@ function navToPage(pageId) {
         'page-turismo': 'Turismo · Montúfar',
         'page-eventos': 'Eventos y Agenda',
         'page-transparencia': 'Municipio Transparente',
-        'page-perfil': 'Mi Perfil'
+        'page-perfil': 'Mi Perfil',
+        'page-turnos': 'Turnos Virtuales',
+        'page-votaciones': 'Presupuesto Participativo',
+        'page-mapa': 'Mapa Interactivo'
     };
     const el = document.getElementById('topbar-title');
     if (el && labels[pageId]) el.textContent = labels[pageId];
+
+    // Inicializar mapa si se entra a la página (con un pequeño delay para que el contenedor exista en el DOM)
+    if (pageId === 'page-mapa') {
+        setTimeout(initMapaObras, 300);
+    }
 }
 
 function logout() {
@@ -1616,4 +1624,125 @@ if ('serviceWorker' in navigator) {
             .then(reg => console.log('Service Worker registrado correctamente.', reg.scope))
             .catch(err => console.error('Error al registrar Service Worker:', err));
     });
+}
+
+/* =========================================================
+   NUEVAS FUNCIONES SMART CITY (TURNOS, MAPA, VOTACIONES)
+   ========================================================= */
+
+// 1. Lógica de Turnos
+DB.turnos = [];
+function generarTurno() {
+    const depto = document.getElementById('turno-depto').value;
+    const fecha = document.getElementById('turno-fecha').value;
+    const hora = document.getElementById('turno-hora').value;
+
+    if (!depto || !fecha || !hora) return;
+
+    const turnoId = 'T-' + Math.floor(Math.random() * 10000);
+    DB.turnos.push({ id: turnoId, depto, fecha, hora });
+
+    closeModal('modal-nuevo-turno');
+    showToast('Turno agendado con éxito', 'success');
+    renderTurnos();
+}
+
+function renderTurnos() {
+    const container = document.getElementById('turnos-list');
+    if (!container) return;
+
+    if (DB.turnos.length === 0) {
+        container.innerHTML = `<div class="text-center text-sub mt-4"><p>No tienes turnos agendados.</p></div>`;
+        return;
+    }
+
+    container.innerHTML = DB.turnos.map(t => `
+        <div class="turno-card">
+            <div class="turno-info">
+                <h4>${t.depto}</h4>
+                <p><i class="fa-regular fa-calendar"></i> ${t.fecha} | <i class="fa-regular fa-clock"></i> ${t.hora}</p>
+                <p style="margin-top:4px; font-weight:bold; color:var(--primary);">Turno: ${t.id}</p>
+            </div>
+            <div id="qr-${t.id}" class="turno-qr"></div>
+        </div>
+    `).join('');
+
+    // Generar Mini QRs
+    DB.turnos.forEach(t => {
+        if (typeof QRCode !== 'undefined') {
+            new QRCode(document.getElementById(`qr-${t.id}`), {
+                text: `VALIDO_${t.id}_${t.depto}`,
+                width: 50, height: 50, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.L
+            });
+        }
+    });
+}
+
+// 2. Lógica de Votaciones (Presupuesto)
+let votos = { proyecto1: 145, proyecto2: 89 };
+let chartVotaciones = null;
+
+function votarProyecto(id) {
+    if (id === 1) votos.proyecto1++;
+    if (id === 2) votos.proyecto2++;
+
+    showToast('¡Gracias por tu voto!', 'success');
+
+    // Deshabilitar botones
+    document.getElementById('btn-vot-1').disabled = true;
+    document.getElementById('btn-vot-2').disabled = true;
+
+    renderChartVotaciones();
+}
+
+function renderChartVotaciones() {
+    const ctx = document.getElementById('chart-votaciones');
+    if (!ctx || typeof Chart === 'undefined') return;
+
+    if (chartVotaciones) chartVotaciones.destroy();
+
+    chartVotaciones = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Parque Norte', 'Mercado Central'],
+            datasets: [{
+                label: 'Votos Ciudadanos',
+                data: [votos.proyecto1, votos.proyecto2],
+                backgroundColor: ['#2563eb', '#f59e0b'],
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+// Inicializar gráfica al cargar
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(renderChartVotaciones, 1000);
+});
+
+// 3. Lógica del Mapa Interactivo (Leaflet)
+let map = null;
+function initMapaObras() {
+    if (map) return; // Ya está inicializado
+    const container = document.getElementById('mapa-obras');
+    if (!container || typeof L === 'undefined') return;
+
+    // Coordenadas de San Gabriel, Carchi, Ecuador
+    map = L.map('mapa-obras').setView([0.5973, -77.8341], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Pines de ejemplo
+    L.marker([0.5973, -77.8341]).addTo(map).bindPopup('<b>Municipio de Montúfar</b><br>Sede Principal');
+    L.marker([0.6010, -77.8300]).addTo(map).bindPopup('<b>Obra en Ejecución</b><br>Asfaltado Vía Principal');
+    L.marker([0.5950, -77.8380]).addTo(map).bindPopup('<b>Reporte Ciudadano</b><br>Luminaria Reparada');
+
+    // Forzar redibujado por si el contenedor estaba oculto
+    setTimeout(() => { map.invalidateSize(); }, 500);
 }
