@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 
 <body>
@@ -348,13 +350,31 @@
                             <div class="pay-type-card" onclick="filterPagos('multa')">
                                 <div class="pt-icon red"><i class="fa-solid fa-gavel"></i></div><span>Multas</span>
                             </div>
+                            <div class="pay-type-card" onclick="filterPagos('luz')">
+                                <div class="pt-icon yellow"><i class="fa-solid fa-lightbulb"></i></div><span>Luz (Emelnorte)</span>
+                            </div>
+                            <div class="pay-type-card" onclick="filterPagos('telefono')">
+                                <div class="pt-icon cyan"><i class="fa-solid fa-phone"></i></div><span>Teléfono (CNT)</span>
+                            </div>
                             <div class="pay-type-card active-pay-type" onclick="filterPagos('all')">
                                 <div class="pt-icon navy"><i class="fa-solid fa-list-check"></i></div><span>Ver
                                     Todo</span>
                             </div>
                         </div>
-                        <h4 class="subsec-title mt-3">Obligaciones Pendientes</h4>
-                        <div class="list-container" id="pagos-list"></div>
+                        <div class="tabs mt-3" style="display:flex; border-bottom:1px solid var(--border-soft); margin-bottom:16px;">
+                            <button class="tab-btn active" id="tab-pagos-pendientes" onclick="switchPagosView('pendientes')" style="flex:1; padding:12px; background:transparent; border:none; border-bottom:2px solid var(--primary); color:var(--primary); font-weight:600; cursor:pointer;">Pendientes</button>
+                            <button class="tab-btn" id="tab-pagos-historial" onclick="switchPagosView('historial')" style="flex:1; padding:12px; background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-sub); font-weight:600; cursor:pointer;">Historial</button>
+                        </div>
+                        
+                        <div id="view-pagos-pendientes">
+                            <h4 class="subsec-title mt-3">Obligaciones Pendientes</h4>
+                            <div class="list-container" id="pagos-list"></div>
+                        </div>
+
+                        <div id="view-pagos-historial" class="d-none">
+                            <h4 class="subsec-title mt-3">Pagos Realizados</h4>
+                            <div class="list-container" id="pagos-historial-list"></div>
+                        </div>
                     </div>
 
                     <!-- ── REPORTES ── -->
@@ -630,6 +650,19 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Gráficos dinámicos -->
+                        <div class="charts-grid mt-4">
+                            <div class="chart-card">
+                                <h4><i class="fa-solid fa-chart-line"></i> Recaudación Últimos 6 Meses</h4>
+                                <div class="canvas-wrap"><canvas id="chart-recaudacion"></canvas></div>
+                            </div>
+                            <div class="chart-card">
+                                <h4><i class="fa-solid fa-chart-pie"></i> Estado de Trámites</h4>
+                                <div class="canvas-wrap"><canvas id="chart-tramites"></canvas></div>
+                            </div>
+                        </div>
+
                         <h3 class="section-title mt-4">Casos Recientes</h3>
                         <table class="admin-table">
                             <thead>

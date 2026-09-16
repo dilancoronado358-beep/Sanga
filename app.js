@@ -21,8 +21,12 @@ const DB = {
         { id: 'PAG-102', categoria: 'agua', tipo: 'Servicio de Agua Potable', cuenta: 'Medidor N.° 99821', monto: 13.00, vence: '15/08/2026', icono: 'fa-faucet-drip' },
         { id: 'PAG-103', categoria: 'patente', tipo: 'Patente Comercial 2026', cuenta: 'RUC 0401234567001', monto: 45.00, vence: '30/09/2026', icono: 'fa-store' },
         { id: 'PAG-104', categoria: 'tasa', tipo: 'Tasa de Recolección', cuenta: 'Contribuyente 1189', monto: 8.50, vence: '31/08/2026', icono: 'fa-trash-can' },
-        { id: 'PAG-105', categoria: 'multa', tipo: 'Multa por Infracción', cuenta: 'Acta N.° 2026-440', monto: 22.00, vence: '10/08/2026', icono: 'fa-gavel' }
+        { id: 'PAG-105', categoria: 'multa', tipo: 'Multa por Infracción', cuenta: 'Acta N.° 2026-440', monto: 22.00, vence: '10/08/2026', icono: 'fa-gavel' },
+        { id: 'PAG-106', categoria: 'luz', tipo: 'Planilla de Luz - Emelnorte', cuenta: 'Suministro N.° 1004562', monto: 18.50, vence: '05/09/2026', icono: 'fa-lightbulb' },
+        { id: 'PAG-107', categoria: 'telefono', tipo: 'Planilla Telefónica - CNT', cuenta: 'Línea 062290123', monto: 12.00, vence: '12/09/2026', icono: 'fa-phone' }
     ],
+
+    historialPagos: [],
 
     reportes: [
         { id: 'REP-1024', cat: 'Luminaria Dañada', ubi: 'Barrio San José, calle 10 de Agosto', fecha: '25/07/2026', estado: 'Atendido', badge: 'badge-success', prioridad: 'Media' },
@@ -272,19 +276,111 @@ function doLogin() {
     renderAllModules();
 }
 
-function simulateBiometrics() {
-    showToast('Verificando huella dactilar…', 'info');
-    setTimeout(() => {
-        showToast('Identidad verificada ✓');
-        switchView('view-citizen');
-        renderAllModules();
-    }, 1600);
+async function simulateBiometrics() {
+    if (!window.PublicKeyCredential) {
+        showToast('Tu navegador no soporta biometría web.', 'error');
+        return;
+    }
+
+    try {
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+        const userId = new Uint8Array(16);
+        window.crypto.getRandomValues(userId);
+
+        const options = {
+            challenge: challenge,
+            rp: { name: "SanGa Municipio", id: window.location.hostname || "localhost" },
+            user: {
+                id: userId,
+                name: "ciudadano@montufar.gob.ec",
+                displayName: "Ciudadano"
+            },
+            pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+            authenticatorSelection: {
+                authenticatorAttachment: "platform", // Obliga a usar biometría local (Huella/Rostro)
+                userVerification: "required"
+            },
+            timeout: 60000,
+            attestation: "none"
+        };
+
+        showToast('Activa el sensor biométrico...', 'info');
+
+        // Esto invoca el prompt nativo de FaceID, TouchID, Windows Hello, etc.
+        const credential = await navigator.credentials.create({ publicKey: options });
+
+        if (credential) {
+            showToast('¡Identidad verificada! ✓');
+            switchView('view-citizen');
+            renderAllModules();
+        }
+    } catch (err) {
+        console.error("Biometría error:", err);
+        if (err.name === 'NotAllowedError') {
+            showToast('Autenticación cancelada.', 'error');
+        } else {
+            showToast('Dispositivo sin biometría o sin configurar.', 'error');
+        }
+    }
 }
 
 function switchView(id) {
     document.querySelectorAll('.app-view').forEach(v => { v.classList.remove('active'); });
     const v = document.getElementById(id);
     if (v) { v.classList.remove('d-none'); v.classList.add('active'); }
+    if (id === 'view-admin') {
+        setTimeout(initAdminCharts, 100);
+    }
+}
+
+let adminChartsRendered = false;
+function initAdminCharts() {
+    if (adminChartsRendered || typeof Chart === 'undefined') return;
+
+    // Gráfico de Recaudación (Bar Chart)
+    const ctxRec = document.getElementById('chart-recaudacion').getContext('2d');
+    new Chart(ctxRec, {
+        type: 'bar',
+        data: {
+            labels: ['Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago'],
+            datasets: [{
+                label: 'Recaudación (USD)',
+                data: [18450, 22100, 19500, 24000, 26800, 31200],
+                backgroundColor: 'rgba(34, 212, 160, 0.7)',
+                borderColor: '#22d4a0',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // Gráfico de Trámites (Doughnut Chart)
+    const ctxTram = document.getElementById('chart-tramites').getContext('2d');
+    new Chart(ctxTram, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pendientes', 'En Revisión', 'Aprobados', 'Rechazados'],
+            datasets: [{
+                data: [15, 22, 45, 5],
+                backgroundColor: ['#d97706', '#0891b2', '#0f9870', '#dc2626'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right' } }
+        }
+    });
+
+    adminChartsRendered = true;
 }
 
 function navToPage(pageId) {
@@ -389,22 +485,23 @@ function renderTramites() {
 
 // ── PAGOS ──
 let pagosFiltro = 'all';
-function filterPagos(cat) {
-    pagosFiltro = cat;
-    document.querySelectorAll('.pay-type-card').forEach(c => c.classList.remove('active-pay-type'));
-    event.currentTarget.classList.add('active-pay-type');
-    renderPagos();
-}
+const initPago = openPaymentModal;
 
-function renderPagos() {
-    const el = document.getElementById('pagos-list');
-    if (!el) return;
-    const lista = pagosFiltro === 'all' ? DB.pagos : DB.pagos.filter(p => p.categoria === pagosFiltro);
-    if (lista.length === 0) {
-        el.innerHTML = `<div class="item-card text-center"><i class="fa-solid fa-check-circle fa-2x" style="color:var(--accent); margin-bottom:10px;"></i><p>No tienes obligaciones pendientes en esta categoría.</p></div>`;
+function renderPagos(categoria = 'all') {
+    const list = document.getElementById('pagos-list');
+    if (!list) return;
+
+    let filtered = DB.pagos;
+    if (categoria !== 'all') {
+        filtered = DB.pagos.filter(p => p.categoria === categoria);
+    }
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="item-card text-center"><i class="fa-solid fa-check-circle fa-2x" style="color:var(--accent); margin-bottom:10px;"></i><p>No tienes obligaciones pendientes en esta categoría.</p></div>`;
         return;
     }
-    el.innerHTML = lista.map(p => `
+
+    list.innerHTML = filtered.map(p => `
         <div class="item-card">
             <div class="item-card-top">
                 <div style="display:flex; align-items:center; gap:14px;">
@@ -421,10 +518,89 @@ function renderPagos() {
                 </div>
             </div>
             <div class="item-actions">
-                <button class="btn btn-primary w-100" onclick="openPaymentModal('${p.id}', ${p.monto}, '${p.tipo}')"><i class="fa-solid fa-credit-card"></i> Pagar Ahora</button>
+                <button class="btn btn-primary w-100" onclick="initPago('${p.id}', ${p.monto}, '${p.tipo}')"><i class="fa-solid fa-credit-card"></i> Pagar Ahora</button>
             </div>
         </div>
     `).join('');
+}
+
+function renderHistorialPagos() {
+    const list = document.getElementById('pagos-historial-list');
+    if (!list) return;
+
+    if (!DB.historialPagos) DB.historialPagos = [];
+
+    if (DB.historialPagos.length === 0) {
+        list.innerHTML = `<div class="item-card text-center"><i class="fa-solid fa-receipt fa-2x" style="color:var(--text-dis); margin-bottom:10px;"></i><p>Aún no hay historial de pagos.</p></div>`;
+        return;
+    }
+
+    list.innerHTML = [...DB.historialPagos].reverse().map(p => `
+        <div class="item-card" style="opacity: 0.85;">
+            <div class="item-card-top">
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <div class="sc-icon green" style="flex-shrink:0;"><i class="fa-solid fa-check"></i></div>
+                    <div>
+                        <div class="item-title">${p.tipo}</div>
+                        <div class="item-meta"><i class="fa-solid fa-barcode"></i>${p.cuenta || p.id}</div>
+                        <div class="item-meta"><i class="fa-regular fa-calendar-check"></i>Pagado el ${p.fechaPago}</div>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <span class="badge badge-success">Pagado</span>
+                    <span class="amount-big" style="color:var(--text-sub);">$${p.monto.toFixed(2)}</span>
+                </div>
+            </div>
+            <div class="item-actions">
+                <div style="font-size:0.8rem; color:var(--text-sub); width:100%; text-align:center;">
+                    <i class="fa-solid fa-money-bill-transfer"></i> Vía ${p.metodoLabel}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function switchPagosView(view) {
+    const tabPend = document.getElementById('tab-pagos-pendientes');
+    const tabHist = document.getElementById('tab-pagos-historial');
+    const viewPend = document.getElementById('view-pagos-pendientes');
+    const viewHist = document.getElementById('view-pagos-historial');
+
+    if (tabPend) {
+        tabPend.classList.remove('active');
+        tabPend.style.borderBottomColor = 'transparent';
+        tabPend.style.color = 'var(--text-sub)';
+    }
+    if (tabHist) {
+        tabHist.classList.remove('active');
+        tabHist.style.borderBottomColor = 'transparent';
+        tabHist.style.color = 'var(--text-sub)';
+    }
+
+    if (viewPend) viewPend.classList.add('d-none');
+    if (viewHist) viewHist.classList.add('d-none');
+
+    const activeTab = document.getElementById(`tab-pagos-${view}`);
+    if (activeTab) {
+        activeTab.classList.add('active');
+        activeTab.style.borderBottomColor = 'var(--primary)';
+        activeTab.style.color = 'var(--primary)';
+    }
+
+    const activeView = document.getElementById(`view-pagos-${view}`);
+    if (activeView) activeView.classList.remove('d-none');
+
+    if (view === 'pendientes') renderPagos('all');
+    if (view === 'historial') renderHistorialPagos();
+}
+
+function filterPagos(cat) {
+    pagosFiltro = cat;
+    document.querySelectorAll('.pay-type-card').forEach(c => c.classList.remove('active-pay-type'));
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active-pay-type');
+    }
+    renderPagos(cat);
 }
 
 // ── REPORTES ──
@@ -699,9 +875,16 @@ function chatExecutePayment(method) {
     showTyping();
     setTimeout(() => {
         removeTyping();
+        if (!DB.historialPagos) DB.historialPagos = [];
+        DB.historialPagos.push({
+            ...p,
+            fechaPago: new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' }),
+            metodoLabel: method === 'card' ? 'Tarjeta' : 'Transferencia'
+        });
         DB.pagos = DB.pagos.filter(x => x.id !== p.id);
         saveDB();
-        renderPagos();
+        renderPagos('all');
+        renderHistorialPagos();
         const num = `REC-${new Date().getFullYear()}-${Math.floor(Math.random() * 90000 + 10000)}`;
         appendMsg(`
             <p>✅ <strong>¡Pago procesado con éxito!</strong></p>
@@ -757,9 +940,16 @@ function chatHandleVoucher(input) {
             <div class="chat-validated-badge"><i class="fa-solid fa-shield-check"></i> Código: ${validationCode}</div>
         `;
         if (pago) {
+            if (!DB.historialPagos) DB.historialPagos = [];
+            DB.historialPagos.push({
+                ...pago,
+                fechaPago: new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' }),
+                metodoLabel: 'Transferencia'
+            });
             DB.pagos = DB.pagos.filter(x => x.id !== pago.id);
             saveDB();
-            renderPagos();
+            renderPagos('all');
+            renderHistorialPagos();
             confirmMsg += `<p style="margin-top:8px;">El pago de <strong>${pago.tipo}</strong> ha sido marcado como <strong>verificado</strong>. El municipio confirmará en 24 horas.</p>`;
             chatCtx.selectedPago = null;
         } else {
@@ -946,14 +1136,14 @@ function analyzeIntent(qRaw) {
 
     // 3. Scoring por intención principal (Bag of Words)
     const intents = {
-        pagos:       { w: ['pagar', 'pago', 'predial', 'deuda', 'debo', 'patente', 'multa', 'tasa', 'dinero', 'deudas', 'obligacion', 'cobro'], score: 0 },
-        turismo:     { w: ['turismo', 'visitar', 'viajar', 'conocer', 'lugar', 'bosque', 'cascada', 'laguna', 'gastronomia', 'iglesia', 'naturaleza', 'cultura'], score: 0 },
-        rural:       { w: ['rural', 'campo', 'agricultura', 'agricola', 'semilla', 'brigada', 'parroquia', 'comunidad', 'tractor', 'cosecha'], score: 0 },
-        eventos:     { w: ['evento', 'fiesta', 'concierto', 'feria', 'carrera', 'concejo', 'agenda', 'actividad', 'festival'], score: 0 },
-        reportes:    { w: ['reportar', 'bache', 'luminaria', 'basura', 'problema', 'calle', 'roto', 'fuga', 'parque', 'dano', 'deterioro', 'queja'], score: 0 },
-        tramites:    { w: ['tramite', 'permiso', 'certificado', 'linea', 'fabrica', 'solicitud', 'documento', 'sacar', 'registro', 'licencia'], score: 0 },
+        pagos: { w: ['pagar', 'pago', 'predial', 'deuda', 'debo', 'patente', 'multa', 'tasa', 'dinero', 'deudas', 'obligacion', 'cobro'], score: 0 },
+        turismo: { w: ['turismo', 'visitar', 'viajar', 'conocer', 'lugar', 'bosque', 'cascada', 'laguna', 'gastronomia', 'iglesia', 'naturaleza', 'cultura'], score: 0 },
+        rural: { w: ['rural', 'campo', 'agricultura', 'agricola', 'semilla', 'brigada', 'parroquia', 'comunidad', 'tractor', 'cosecha'], score: 0 },
+        eventos: { w: ['evento', 'fiesta', 'concierto', 'feria', 'carrera', 'concejo', 'agenda', 'actividad', 'festival'], score: 0 },
+        reportes: { w: ['reportar', 'bache', 'luminaria', 'basura', 'problema', 'calle', 'roto', 'fuga', 'parque', 'dano', 'deterioro', 'queja'], score: 0 },
+        tramites: { w: ['tramite', 'permiso', 'certificado', 'linea', 'fabrica', 'solicitud', 'documento', 'sacar', 'registro', 'licencia'], score: 0 },
         comprobante: { w: ['comprobante', 'transferencia', 'subir', 'adjuntar', 'validar', 'envie'], score: 0 },
-        saludo:      { w: ['hola', 'buenos', 'buenas', 'saludos', 'gracias', 'ola', 'buen dia'], score: 0 }
+        saludo: { w: ['hola', 'buenos', 'buenas', 'saludos', 'gracias', 'ola', 'buen dia'], score: 0 }
     };
     q.split(/\s+/).filter(w => w.length > 2).forEach(w => {
         for (const key in intents) {
@@ -1108,33 +1298,115 @@ function generarRecibo(method) {
     const methodLabel = method === 'card' ? 'Tarjeta de Crédito/Débito' : 'Transferencia Bancaria';
 
     document.getElementById('recibo-content').innerHTML = `
-        <div class="recibo-header">
-            <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" class="recibo-logo" alt="Logo">
-            <h3 style="font-size:1rem; margin-bottom:4px;">GAD MUNICIPAL DE MONTÚFAR</h3>
-            <p style="font-size:0.78rem; opacity:0.8;">RUC: 0460000120001 · San Gabriel, Carchi</p>
-            <p style="font-size:0.72rem; opacity:0.6; margin-top:4px;">COMPROBANTE ELECTRÓNICO NO. ${num}</p>
-        </div>
-        <div class="recibo-body">
-            <table>
-                <tr><td>Fecha y hora</td><td>${fecha}</td></tr>
-                <tr><td>Ciudadano</td><td>${DB.usuario.nombre} ${DB.usuario.apellido}</td></tr>
-                <tr><td>Cédula</td><td>${DB.usuario.cedula}</td></tr>
-                <tr><td>Correo</td><td>${DB.usuario.correo}</td></tr>
-                <tr><td>Concepto</td><td><strong>${pagoActual.tipo}</strong></td></tr>
-                <tr><td>Método de pago</td><td>${methodLabel}</td></tr>
-                <tr><td>Estado</td><td><span class="badge badge-success">Pagado ✓</span></td></tr>
-            </table>
-        </div>
-        <div class="recibo-total">
-            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">TOTAL PAGADO</p>
-            <div class="rt-val">$${pagoActual.monto.toFixed(2)}</div>
-        </div>
-        <div class="recibo-qr">
-            <p style="font-size:0.75rem; color:var(--text-muted);">Código de verificación electrónica</p>
-            <div class="qr-box"><i class="fa-solid fa-qrcode"></i></div>
-            <p style="font-size:0.7rem; color:var(--text-disabled);">${num} · Válido ante organismos de control</p>
+        <div class="premium-receipt">
+            <div class="pr-header">
+                <div class="pr-brand">
+                    <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" alt="Logo">
+                    <div>
+                        <h4>GAD Municipal de Montúfar</h4>
+                        <span>RUC: 0460000120001</span>
+                    </div>
+                </div>
+                <div class="pr-badge"><i class="fa-solid fa-check"></i> Pagado</div>
+            </div>
+            
+            <div class="pr-divider"></div>
+            
+            <div class="pr-meta">
+                <div class="pr-meta-item">
+                    <span>Comprobante No.</span>
+                    <strong>${num}</strong>
+                </div>
+                <div class="pr-meta-item">
+                    <span>Fecha y Hora</span>
+                    <strong>${fecha}</strong>
+                </div>
+            </div>
+            
+            <div class="pr-details">
+                <div class="pr-detail-box full-width highlight">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <div class="prd-text">
+                        <span>Concepto de Pago</span>
+                        <strong>${pagoActual.tipo}</strong>
+                    </div>
+                </div>
+                <div class="pr-detail-box">
+                    <i class="fa-regular fa-user"></i>
+                    <div class="prd-text">
+                        <span>Ciudadano</span>
+                        <strong>${DB.usuario.nombre} ${DB.usuario.apellido}</strong>
+                    </div>
+                </div>
+                <div class="pr-detail-box">
+                    <i class="fa-regular fa-id-card"></i>
+                    <div class="prd-text">
+                        <span>Cédula</span>
+                        <strong>${DB.usuario.cedula}</strong>
+                    </div>
+                </div>
+                <div class="pr-detail-box full-width">
+                    <i class="fa-regular fa-credit-card"></i>
+                    <div class="prd-text">
+                        <span>Método de pago utilizado</span>
+                        <strong>${methodLabel}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pr-footer">
+                <div class="pr-total-section">
+                    <span>Total Cancelado</span>
+                    <div class="pr-amount">$${pagoActual.monto.toFixed(2)}</div>
+                </div>
+                <div class="pr-qr-section">
+                    <div id="recibo-qrcode-container" class="premium-qr"></div>
+                    <span>Escanear QR</span>
+                </div>
+            </div>
         </div>
     `;
+
+    setTimeout(() => {
+        const qrContainer = document.getElementById('recibo-qrcode-container');
+        if (qrContainer && typeof QRCode !== 'undefined') {
+            qrContainer.innerHTML = '';
+            const qrData = `GAD MONTÚFAR - COMPROBANTE OFICIAL\n\n` +
+                `Nro: ${num}\n` +
+                `Fecha: ${fecha}\n\n` +
+                `Ciudadano: ${DB.usuario.nombre} ${DB.usuario.apellido}\n` +
+                `C.I: ${DB.usuario.cedula}\n\n` +
+                `Concepto: ${pagoActual.tipo}\n` +
+                `Método: ${methodLabel}\n` +
+                `Total Pagado: $${pagoActual.monto.toFixed(2)}\n\n` +
+                `Válido ante organismos de control.`;
+
+            new QRCode(qrContainer, {
+                text: qrData,
+                width: 256,
+                height: 256,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
+            // Ajustar visualmente el tamaño usando CSS (el canvas se dibuja a alta resolución pero se muestra a 90px)
+            qrContainer.style.width = '100px';
+            qrContainer.style.height = '100px';
+            qrContainer.style.overflow = 'hidden';
+            qrContainer.style.display = 'flex';
+            qrContainer.style.alignItems = 'center';
+            qrContainer.style.justifyContent = 'center';
+
+            // Forzar los hijos (canvas e img) a tomar el tamaño correcto
+            setTimeout(() => {
+                const canvas = qrContainer.querySelector('canvas');
+                const img = qrContainer.querySelector('img');
+                if (canvas) { canvas.style.width = '100%'; canvas.style.height = '100%'; }
+                if (img) { img.style.width = '100%'; img.style.height = '100%'; }
+            }, 50);
+        }
+    }, 100); // Dar más margen de tiempo al DOM
+
     openModal('modal-recibo');
 }
 
