@@ -4,14 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
+
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SanGa">
-    <link rel="apple-touch-icon" href="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png">
-    
+    <link rel="apple-touch-icon"
+        href="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png">
+
     <title>SanGa – El Municipio de Montúfar en tus manos</title>
     <meta name="description"
         content="Primera asistente digital del Gobierno Autónomo Descentralizado Municipal de Montúfar.">
@@ -285,50 +286,62 @@
                         </div>
                     </div>
                     <!-- ── TURNOS VIRTUALES ── -->
-                    <div id="page-turnos" class="page d-none">
+                    <div id="page-turnos" class="page">
                         <div class="page-hdr">
                             <h2 class="page-title"><i class="fa-solid fa-ticket"></i> Turnos Virtuales</h2>
-                            <p class="text-sub" style="font-size:0.85rem;">Cero filas. Agenda tu visita al municipio.</p>
+                            <p class="text-sub" style="font-size:0.85rem;">Cero filas. Agenda tu visita al municipio.
+                            </p>
                         </div>
-                        <button class="btn btn-primary w-100 mb-4" onclick="openModal('modal-nuevo-turno')"><i class="fa-solid fa-plus"></i> Agendar Nuevo Turno</button>
-                        
+                        <button class="btn btn-primary w-100 mb-4" onclick="openModal('modal-nuevo-turno')"><i
+                                class="fa-solid fa-plus"></i> Agendar Nuevo Turno</button>
+
                         <h3 class="section-title">Mis Turnos Activos</h3>
                         <div id="turnos-list">
-                            <div class="text-center text-sub mt-4"><p>No tienes turnos agendados.</p></div>
+                            <div class="text-center text-sub mt-4">
+                                <p>No tienes turnos agendados.</p>
+                            </div>
                         </div>
                     </div>
 
                     <!-- ── VOTACIONES / PRESUPUESTO ── -->
-                    <div id="page-votaciones" class="page d-none">
+                    <div id="page-votaciones" class="page">
                         <div class="page-hdr">
-                            <h2 class="page-title"><i class="fa-solid fa-check-to-slot"></i> Presupuesto Participativo</h2>
-                            <p class="text-sub" style="font-size:0.85rem;">Tu voz decide las próximas obras del municipio.</p>
+                            <h2 class="page-title"><i class="fa-solid fa-check-to-slot"></i> Presupuesto Participativo
+                            </h2>
+                            <p class="text-sub" style="font-size:0.85rem;">Tu voz decide las próximas obras del
+                                municipio.</p>
                         </div>
-                        
+
                         <div class="votacion-card">
-                            <img src="https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?auto=format&fit=crop&w=800&q=80" class="votacion-img" alt="Proyecto 1">
+                            <img src="https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?auto=format&fit=crop&w=800&q=80"
+                                class="votacion-img" alt="Proyecto 1">
                             <h4>Construcción del Parque Norte</h4>
                             <p>Creación de áreas verdes, juegos infantiles y canchas deportivas.</p>
-                            <button class="btn btn-primary w-100" id="btn-vot-1" onclick="votarProyecto(1)"><i class="fa-solid fa-thumbs-up"></i> Votar por este proyecto</button>
+                            <button class="btn btn-primary w-100" id="btn-vot-1" onclick="votarProyecto(1)"><i
+                                    class="fa-solid fa-thumbs-up"></i> Votar por este proyecto</button>
                         </div>
-                        
+
                         <div class="votacion-card">
-                            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80" class="votacion-img" alt="Proyecto 2">
+                            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80"
+                                class="votacion-img" alt="Proyecto 2">
                             <h4>Remodelación Mercado Central</h4>
                             <p>Modernización de los puestos de alimentos y parqueadero.</p>
-                            <button class="btn btn-outline w-100" id="btn-vot-2" onclick="votarProyecto(2)"><i class="fa-solid fa-thumbs-up"></i> Votar por este proyecto</button>
+                            <button class="btn btn-outline w-100" id="btn-vot-2" onclick="votarProyecto(2)"><i
+                                    class="fa-solid fa-thumbs-up"></i> Votar por este proyecto</button>
                         </div>
-                        
+
                         <h3 class="section-title mt-4">Resultados en Vivo</h3>
-                        <div style="background:var(--surface); padding:16px; border-radius:var(--r); border:1px solid var(--border-soft);">
+                        <div
+                            style="background:var(--surface); padding:16px; border-radius:var(--r); border:1px solid var(--border-soft);">
                             <canvas id="chart-votaciones"></canvas>
                         </div>
                     </div>
 
                     <!-- ── MAPA DE OBRAS ── -->
-                    <div id="page-mapa" class="page d-none">
+                    <div id="page-mapa" class="page">
                         <div class="page-hdr">
-                            <h2 class="page-title"><i class="fa-solid fa-map-location-dot"></i> Mapa de Obras y Reportes</h2>
+                            <h2 class="page-title"><i class="fa-solid fa-map-location-dot"></i> Mapa de Obras y Reportes
+                            </h2>
                             <p class="text-sub" style="font-size:0.85rem;">Obras en ejecución y reportes atendidos.</p>
                         </div>
                         <div id="mapa-obras"></div>
@@ -364,7 +377,9 @@
                                 </div>
                             </div>
                             <div class="chat-input-row">
-                                <button class="ci-btn" title="Adjuntar comprobante" onclick="document.getElementById('voucher-file-input').click()"><i class="fa-solid fa-paperclip"></i></button>
+                                <button class="ci-btn" title="Adjuntar comprobante"
+                                    onclick="document.getElementById('voucher-file-input').click()"><i
+                                        class="fa-solid fa-paperclip"></i></button>
                                 <button class="ci-btn" title="Ubicación GPS"><i
                                         class="fa-solid fa-location-dot"></i></button>
                                 <input type="text" id="chat-input" placeholder="Escribe tu consulta a SanGa…">
@@ -372,7 +387,8 @@
                                         class="fa-solid fa-paper-plane"></i></button>
                                 <button class="ci-btn" title="Voz"><i class="fa-solid fa-microphone"></i></button>
                                 <!-- Hidden file input for voucher upload -->
-                                <input type="file" id="voucher-file-input" accept="image/*,.pdf" style="display:none" onchange="chatHandleVoucher(this)">
+                                <input type="file" id="voucher-file-input" accept="image/*,.pdf" style="display:none"
+                                    onchange="chatHandleVoucher(this)">
                             </div>
                         </div>
                     </div>
@@ -421,21 +437,27 @@
                                 <div class="pt-icon red"><i class="fa-solid fa-gavel"></i></div><span>Multas</span>
                             </div>
                             <div class="pay-type-card" onclick="filterPagos('luz')">
-                                <div class="pt-icon yellow"><i class="fa-solid fa-lightbulb"></i></div><span>Luz (Emelnorte)</span>
+                                <div class="pt-icon yellow"><i class="fa-solid fa-lightbulb"></i></div><span>Luz
+                                    (Emelnorte)</span>
                             </div>
                             <div class="pay-type-card" onclick="filterPagos('telefono')">
-                                <div class="pt-icon cyan"><i class="fa-solid fa-phone"></i></div><span>Teléfono (CNT)</span>
+                                <div class="pt-icon cyan"><i class="fa-solid fa-phone"></i></div><span>Teléfono
+                                    (CNT)</span>
                             </div>
                             <div class="pay-type-card active-pay-type" onclick="filterPagos('all')">
                                 <div class="pt-icon navy"><i class="fa-solid fa-list-check"></i></div><span>Ver
                                     Todo</span>
                             </div>
                         </div>
-                        <div class="tabs mt-3" style="display:flex; border-bottom:1px solid var(--border-soft); margin-bottom:16px;">
-                            <button class="tab-btn active" id="tab-pagos-pendientes" onclick="switchPagosView('pendientes')" style="flex:1; padding:12px; background:transparent; border:none; border-bottom:2px solid var(--primary); color:var(--primary); font-weight:600; cursor:pointer;">Pendientes</button>
-                            <button class="tab-btn" id="tab-pagos-historial" onclick="switchPagosView('historial')" style="flex:1; padding:12px; background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-sub); font-weight:600; cursor:pointer;">Historial</button>
+                        <div class="tabs mt-3"
+                            style="display:flex; border-bottom:1px solid var(--border-soft); margin-bottom:16px;">
+                            <button class="tab-btn active" id="tab-pagos-pendientes"
+                                onclick="switchPagosView('pendientes')"
+                                style="flex:1; padding:12px; background:transparent; border:none; border-bottom:2px solid var(--primary); color:var(--primary); font-weight:600; cursor:pointer;">Pendientes</button>
+                            <button class="tab-btn" id="tab-pagos-historial" onclick="switchPagosView('historial')"
+                                style="flex:1; padding:12px; background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-sub); font-weight:600; cursor:pointer;">Historial</button>
                         </div>
-                        
+
                         <div id="view-pagos-pendientes">
                             <h4 class="subsec-title mt-3">Obligaciones Pendientes</h4>
                             <div class="list-container" id="pagos-list"></div>
@@ -1021,6 +1043,79 @@
             </div>
         </div>
 
+        <!-- Modal SOS -->
+        <div id="modal-sos" class="modal-overlay">
+            <div class="modal" style="border-top: 5px solid #dc2626;">
+                <div class="modal-hdr">
+                    <h3 style="color:#dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> Directorio de Emergencias</h3>
+                    <button class="close-btn" onclick="closeModal('modal-sos')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:10px;">Presiona para llamar inmediatamente</p>
+                    <div class="sos-grid">
+                        <a href="tel:911" class="sos-card dark">
+                            <i class="fa-solid fa-phone"></i>
+                            <span>ECU 911</span>
+                            <small>Emergencia General</small>
+                        </a>
+                        <a href="tel:062290101" class="sos-card">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Policía</span>
+                            <small>UPC Montúfar</small>
+                        </a>
+                        <a href="tel:062290102" class="sos-card">
+                            <i class="fa-solid fa-fire-extinguisher"></i>
+                            <span>Bomberos</span>
+                            <small>Estación Local</small>
+                        </a>
+                        <a href="tel:062290103" class="sos-card">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <span>Seguridad</span>
+                            <small>Agentes Municipales</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Nuevo Turno -->
+        <div id="modal-nuevo-turno" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-hdr">
+                    <h3><i class="fa-solid fa-ticket"></i> Agendar Turno Presencial</h3>
+                    <button class="close-btn" onclick="closeModal('modal-nuevo-turno')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="event.preventDefault(); generarTurno();">
+                        <div class="form-group">
+                            <label>Trámite / Departamento</label>
+                            <select id="turno-depto" required>
+                                <option value="">— Seleccione —</option>
+                                <option value="Avalúos y Catastros">Avalúos y Catastros</option>
+                                <option value="Agua Potable">Agua Potable (EPAA-M)</option>
+                                <option value="Planificación">Planificación y Planos</option>
+                                <option value="Alcaldía">Audiencia con Alcaldía</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha del Turno</label>
+                            <input type="date" id="turno-fecha" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Hora Preferida</label>
+                            <select id="turno-hora" required>
+                                <option value="08:00 AM">08:00 AM</option>
+                                <option value="10:00 AM">10:00 AM</option>
+                                <option value="02:00 PM">02:00 PM</option>
+                                <option value="04:00 PM">04:00 PM</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-check"></i> Confirmar Turno</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal Registro de Usuario -->
         <div id="modal-registro" class="modal-overlay">
             <div class="modal">
@@ -1071,6 +1166,9 @@
                                 <option>Chitan de Navarrete</option>
                                 <option>Fernández Salvador</option>
                                 <option>Piartal</option>
+                                <option>Chiltaran</option>
+                                <option>La Delicia</option>
+                                <option>Monteverde</option>
                             </select>
                         </div>
                         <button class="btn btn-primary w-100" onclick="regNextStep(1)"><i

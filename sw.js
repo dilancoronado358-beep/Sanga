@@ -1,28 +1,26 @@
-const CACHE_NAME = 'sanga-pwa-v1';
-const urlsToCache = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  'https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png'
-];
+const CACHE_NAME = 'sanga-pwa-v2';
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-  );
+  self.skipWaiting(); // Forzar actualización
 });
 
+self.addEventListener('activate', event => {
+  // Limpiar cachés antiguos
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) return caches.delete(cache);
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Estrategia Network-First
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
