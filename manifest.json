@@ -1,0 +1,21 @@
+{
+  "name": "SanGa Municipio",
+  "short_name": "SanGa",
+  "description": "Aplicación Ciudadana del GAD Municipal de Montúfar",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

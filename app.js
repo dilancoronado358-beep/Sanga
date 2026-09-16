@@ -74,7 +74,7 @@ const DB = {
 
     turismo: [
         {
-            img: 'https://images.unsplash.com/photo-1425913397330-cf8af2ff40a1?auto=format&fit=crop&w=600&q=80',
+            img: 'https://res.cloudinary.com/dtmqftcsr/image/upload/v1789525696/bosque_de_los_arrayaynes_zd695r.jpg',
             titulo: 'Bosque de los Arrayanes', categoria: 'naturaleza',
             subtitulo: 'Reserva Natural · Bosque Andino',
             desc: 'Uno de los bosques de arrayán más extensos y mejor conservados del Ecuador. Sus árboles centenarios de corteza rojiza y tortuosas ramas crean un paisaje de cuento.',
@@ -84,7 +84,7 @@ const DB = {
             detalle: 'El Bosque de los Arrayanes de Montúfar es uno de los tesoros naturales más preciados del norte del Ecuador. Con más de 16 hectáreas cubiertas por arrayanes (Myrcianthes hallii), sus imponentes árboles de corteza naranja y ramas retorcidas conforman uno de los escenarios más fotogénicos de los Andes. Fue declarado Área Natural del Cantón en 1994. La mejor época para visitarlo es de junio a septiembre. Recomendamos llevar ropa abrigada, repelente y calzado impermeable.'
         },
         {
-            img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
+            img: 'https://res.cloudinary.com/dtmqftcsr/image/upload/v1789525696/cascada_de_paluz_a2qwav.jpg',
             titulo: 'Cascada de Paluz', categoria: 'naturaleza',
             subtitulo: 'Senderismo · Naturaleza',
             desc: 'Una majestuosa cascada de 50 metros rodeada de vegetación andina exuberante. Perfecta para senderismo y fotografía de paisaje.',
@@ -94,7 +94,7 @@ const DB = {
             detalle: 'La Cascada de Paluz es una de las caídas de agua más impresionantes del cantón Montúfar. Con una caída de aproximadamente 50 metros, el agua precipita sobre una pared rocosa cubierta de musgos y helechos, creando un ambiente de frescura y tranquilidad inigualables. El sendero de acceso tiene aproximadamente 2 km y es de dificultad moderada. Se recomienda ir acompañado de un guía local de la comunidad.'
         },
         {
-            img: 'https://images.unsplash.com/photo-1548625361-ec853c063fb5?auto=format&fit=crop&w=600&q=80',
+            img: 'https://res.cloudinary.com/dtmqftcsr/image/upload/v1789525910/iglesia_matriz_muihvj.jpg',
             titulo: 'Iglesia Matriz de San Gabriel', categoria: 'cultura',
             subtitulo: 'Patrimonio Histórico · Arquitectura',
             desc: 'Joya arquitectónica del barroco andino construida en el siglo XIX. Considerada una de las más hermosas del norte del Ecuador.',
@@ -104,7 +104,7 @@ const DB = {
             detalle: 'La Iglesia Matriz de San Gabriel es el símbolo arquitectónico e histórico más emblemático del cantón Montúfar. Construida a finales del siglo XIX con influencias del barroco hispanoamericano, su fachada de piedra tallada y sus torres gemelas dominan el paisaje urbano de la ciudad. En su interior guarda valiosas imágenes religiosas del período colonial. Es Patrimonio Cultural del Estado Ecuatoriano desde 1994.'
         },
         {
-            img: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=600&q=80',
+            img: 'https://res.cloudinary.com/dtmqftcsr/image/upload/v1789525995/gastronomia_wl8kj5.jpg',
             titulo: 'Gastronomía de Montúfar', categoria: 'gastronomia',
             subtitulo: 'Cocina Tradicional · Carnes y Tubérculos',
             desc: 'El cuy asado, el caldo de gallina de campo, las papas con cuero y el hornado montufareño son los platos bandera que enamoran a propios y extraños.',
@@ -114,7 +114,7 @@ const DB = {
             detalle: 'La gastronomía de Montúfar es un reflejo de la riqueza cultural y agrícola del cantón. El cuy asado al carbón, acompañado de papas con ají y ensalada de col, es el plato más representativo. El hornado de chancho, preparado desde la madrugada, es otro favorito de los domingos. La chicha de jora y el jugo de caña son las bebidas tradicionales que completan una experiencia culinaria auténtica.'
         },
         {
-            img: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=600&q=80',
+            img: 'https://res.cloudinary.com/dtmqftcsr/image/upload/v1789525696/laguna_del_salado_al2w2s.jpg',
             titulo: 'Laguna del Salado', categoria: 'naturaleza',
             subtitulo: 'Lago Andino · Pesca · Deportes',
             desc: 'Hermosa laguna de altura en los páramos del cantón, ideal para la pesca deportiva, canotaje y observación de aves.',
@@ -1600,3 +1600,11 @@ function loginConNuevaCuenta() {
     if (h1) h1.textContent = `¡Bienvenido, ${DB.usuario.nombre}!`;
 }
 
+// ── REGISTRO DE SERVICE WORKER (PWA) ──
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker registrado correctamente.', reg.scope))
+            .catch(err => console.error('Error al registrar Service Worker:', err));
+    });
+}
