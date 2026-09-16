@@ -277,8 +277,14 @@ function doLogin() {
 }
 
 async function simulateBiometrics() {
-    if (!window.PublicKeyCredential) {
-        showToast('Tu navegador no soporta biometría web.', 'error');
+    // Si no estamos en un entorno seguro (HTTPS/localhost) o no hay biometría, usamos la simulación
+    if (!window.PublicKeyCredential || !navigator.credentials) {
+        showToast('Entorno no seguro. Simulando biometría...', 'info');
+        setTimeout(() => {
+            showToast('¡Identidad verificada! ✓');
+            switchView('view-citizen');
+            renderAllModules();
+        }, 1500);
         return;
     }
 
@@ -1371,23 +1377,26 @@ function generarRecibo(method) {
         const qrContainer = document.getElementById('recibo-qrcode-container');
         if (qrContainer && typeof QRCode !== 'undefined') {
             qrContainer.innerHTML = '';
-            const qrData = `GAD MONTÚFAR - COMPROBANTE OFICIAL\n\n` +
+            const qrDataRaw = `GAD MONTUFAR - COMPROBANTE OFICIAL\n\n` +
                 `Nro: ${num}\n` +
                 `Fecha: ${fecha}\n\n` +
                 `Ciudadano: ${DB.usuario.nombre} ${DB.usuario.apellido}\n` +
                 `C.I: ${DB.usuario.cedula}\n\n` +
                 `Concepto: ${pagoActual.tipo}\n` +
-                `Método: ${methodLabel}\n` +
+                `Metodo: ${methodLabel}\n` +
                 `Total Pagado: $${pagoActual.monto.toFixed(2)}\n\n` +
-                `Válido ante organismos de control.`;
+                `Valido ante organismos de control.`;
+
+            // Remover tildes y caracteres especiales para evitar crasheos silenciosos en qrcode.js
+            const qrDataSafe = qrDataRaw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
             new QRCode(qrContainer, {
-                text: qrData,
+                text: qrDataSafe,
                 width: 256,
                 height: 256,
                 colorDark: "#0f172a",
                 colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.L
+                correctLevel: QRCode.CorrectLevel.M
             });
             // Ajustar visualmente el tamaño usando CSS (el canvas se dibuja a alta resolución pero se muestra a 90px)
             qrContainer.style.width = '100px';
