@@ -7,6 +7,10 @@
 // 1. BASES DE DATOS SIMULADAS
 // ═══════════════════════════════════════════════════
 
+const supabaseUrl = 'https://tqaqcvixfnkonlotydoj.supabase.co';
+const supabaseKey = 'sb_publishable_CnsFQ5ieNVJcYWYYeRZBBA_vap9RNmH';
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
 const DB = {
     usuario: { nombre: 'Juan', apellido: 'Ciudadano', cedula: '0401234567', correo: 'juan.ciudadano@gmail.com' },
 
@@ -26,7 +30,11 @@ const DB = {
         { id: 'PAG-107', categoria: 'telefono', tipo: 'Planilla Telefónica - CNT', cuenta: 'Línea 062290123', monto: 12.00, vence: '12/09/2026', icono: 'fa-phone' }
     ],
 
-    historialPagos: [],
+    historialPagos: [
+        { id: '100452', servicio: 'Impuesto Predial', fecha: '28/09/2026', metodo: 'tarjeta', monto: 32.50 },
+        { id: '100453', servicio: 'Patente Comercial', fecha: '29/09/2026', metodo: 'transferencia', monto: 45.00 },
+        { id: '100454', servicio: 'Tasa de Recolección', fecha: '30/09/2026', metodo: 'tarjeta', monto: 8.50 }
+    ],
 
     reportes: [
         { id: 'REP-1024', cat: 'Luminaria Dañada', ubi: 'Barrio San José, calle 10 de Agosto', fecha: '25/07/2026', estado: 'Atendido', badge: 'badge-success', prioridad: 'Media' },
@@ -242,6 +250,15 @@ function saveDB() {
     }));
 }
 
+function showLoader() {
+    const loader = document.getElementById('global-loader');
+    if (loader) loader.classList.add('show');
+}
+function hideLoader() {
+    const loader = document.getElementById('global-loader');
+    if (loader) loader.classList.remove('show');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadDB();
     // Login
@@ -270,19 +287,99 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function doLogin() {
-    showToast('Autenticación correcta. Bienvenido, ' + DB.usuario.nombre);
-    switchView('view-citizen');
-    renderAllModules();
+async function doLogin() {
+    const ced = document.getElementById('login-cedula').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+
+    if (!ced || !pass) {
+        showToast('Por favor, ingrese su cédula y contraseña.', 'err');
+        return;
+    }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('ciudadanos')
+            .select('*')
+            .eq('cedula', ced)
+            .eq('contrasena', pass)
+            .single();
+
+        if (error || !data) {
+            showToast('Cédula no registrada o contraseña incorrecta.', 'err');
+            return;
+        }
+
+        // Update local state with real data
+        DB.usuario = {
+            nombre: data.nombre,
+            apellido: data.apellido,
+            cedula: data.cedula,
+            correo: data.correo,
+            telefono: data.telefono,
+            parroquia: data.parroquia
+        };
+        showLoader();
+        setTimeout(() => {
+            hideLoader();
+            showToast('Autenticación correcta. Bienvenido, ' + data.nombre);
+            switchView('view-citizen');
+            navToPage('page-dashboard');
+            renderAllModules();
+        }, 1500);
+    } catch (err) {
+        console.error(err);
+        showToast('Error de conexión al servidor.', 'err');
+    }
+}
+
+async function doAdminLogin() {
+    const email = document.getElementById('admin-login-email').value.trim();
+    const pass = document.getElementById('admin-login-pass').value.trim();
+
+    if (!email || !pass) {
+        showToast('Por favor, ingrese su correo y contraseña.', 'err');
+        return;
+    }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('funcionarios')
+            .select('*')
+            .eq('correo', email)
+            .eq('contrasena', pass)
+            .single();
+
+        if (error || !data) {
+            showToast('Correo no registrado o contraseña incorrecta.', 'err');
+            return;
+        }
+
+        closeModal('modal-admin-login');
+        
+        showLoader();
+        setTimeout(() => {
+            hideLoader();
+            showToast('Bienvenido Funcionario: ' + data.nombre);
+            switchView('view-admin');
+            navToPage('admin-dash');
+            renderAdminModules();
+        }, 1500);
+    } catch (err) {
+        console.error(err);
+        showToast('Error de conexión al servidor.', 'err');
+    }
 }
 
 async function simulateBiometrics() {
     // Si no estamos en un entorno seguro (HTTPS/localhost) o no hay biometría, usamos la simulación
     if (!window.PublicKeyCredential || !navigator.credentials) {
         showToast('Entorno no seguro. Simulando biometría...', 'info');
+        showLoader();
         setTimeout(() => {
+            hideLoader();
             showToast('¡Identidad verificada! ✓');
             switchView('view-citizen');
+            navToPage('page-dashboard');
             renderAllModules();
         }, 1500);
         return;
@@ -395,7 +492,15 @@ function navToPage(pageId) {
         b.classList.toggle('active', b.getAttribute('data-page') === pageId);
     });
     const page = document.getElementById(pageId);
-    if (page) page.classList.add('active');
+    if (page) {
+        // Move the page to the currently active layout's container
+        if (document.getElementById('view-admin').classList.contains('active')) {
+            document.querySelector('#view-admin .pages-container').appendChild(page);
+        } else {
+            document.querySelector('#view-citizen .pages-container').appendChild(page);
+        }
+        page.classList.add('active');
+    }
 
     const labels = {
         'page-dashboard': 'Inicio',
@@ -459,6 +564,8 @@ function updateProfileDisplay() {
     const topAv = document.querySelector('.topbar-right .avatar-sm');
     const sbAv = document.getElementById('sb-avatar');
     const sbName = document.getElementById('sb-user-name');
+    const heroMsg = document.getElementById('hero-welcome-msg');
+    
     if (nameEl) nameEl.textContent = u.nombre + ' ' + (u.apellido || '');
     if (cedEl) cedEl.innerHTML = `<i class="fa-solid fa-id-card"></i> C.I. ${u.cedula}`;
     if (emEl) emEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${u.correo}`;
@@ -466,6 +573,7 @@ function updateProfileDisplay() {
     if (topAv) topAv.textContent = initials;
     if (sbAv) sbAv.textContent = initials;
     if (sbName) sbName.textContent = u.nombre + ' ' + (u.apellido || '');
+    if (heroMsg) heroMsg.textContent = '¡Bienvenido, ' + u.nombre + '!';
 }
 
 function toggleSidebar() {
@@ -1570,7 +1678,7 @@ function resendOtp() {
     showToast(`Código reenviado a ${email}`, 'info');
 }
 
-function submitRegistro() {
+async function submitRegistro() {
     // Validar OTP
     const digits = [...document.querySelectorAll('.otp-digit')].map(i => i.value).join('');
     if (digits !== '123456') {
@@ -1585,26 +1693,54 @@ function submitRegistro() {
     const email = document.getElementById('reg-email').value.trim();
     const tel = document.getElementById('reg-telefono').value.trim();
     const parr = document.getElementById('reg-parroquia').value;
+    const pass = document.getElementById('reg-pass').value;
 
-    DB.usuario = { nombre, apellido, cedula, correo: email, telefono: tel, parroquia: parr };
+    try {
+        const { data, error } = await supabaseClient
+            .from('ciudadanos')
+            .insert([{
+                cedula: cedula,
+                nombre: nombre,
+                apellido: apellido,
+                parroquia: parr,
+                correo: email,
+                telefono: tel,
+                contrasena: pass
+            }]);
 
-    // Marcar último paso
-    const dot3 = document.getElementById('step-dot-3');
-    if (dot3) { dot3.classList.remove('active'); dot3.classList.add('done'); }
+        if (error) {
+            console.error('Error insertando en supabase:', error);
+            if (error.code === '23505') {
+                showToast('La cédula ya se encuentra registrada.', 'err');
+            } else {
+                showToast('Error al registrar usuario.', 'err');
+            }
+            return;
+        }
 
-    // Mostrar resumen de éxito
-    document.getElementById('reg-success-msg').textContent =
-        `Tu cuenta ciudadana en el Municipio de Montúfar ha sido creada exitosamente. Puedes ingresar de inmediato.`;
+        DB.usuario = { nombre, apellido, cedula, correo: email, telefono: tel, parroquia: parr };
 
-    document.getElementById('reg-resumen').innerHTML = `
-        <p><strong>Nombre:</strong> ${nombre} ${apellido}</p>
-        <p><strong>Cédula:</strong> ${cedula}</p>
-        <p><strong>Correo:</strong> ${email}</p>
-        <p><strong>Teléfono:</strong> ${tel}</p>
-        <p><strong>Parroquia:</strong> ${parr}</p>
-    `;
+        // Marcar último paso
+        const dot3 = document.getElementById('step-dot-3');
+        if (dot3) { dot3.classList.remove('active'); dot3.classList.add('done'); }
 
-    showRegPaso('exito');
+        // Mostrar resumen de éxito
+        document.getElementById('reg-success-msg').textContent =
+            `Tu cuenta ciudadana en el Municipio de Montúfar ha sido creada exitosamente. Puedes ingresar de inmediato.`;
+
+        document.getElementById('reg-resumen').innerHTML = `
+            <p><strong>Nombre:</strong> ${nombre} ${apellido}</p>
+            <p><strong>Cédula:</strong> ${cedula}</p>
+            <p><strong>Correo:</strong> ${email}</p>
+            <p><strong>Teléfono:</strong> ${tel}</p>
+            <p><strong>Parroquia:</strong> ${parr}</p>
+        `;
+
+        showRegPaso('exito');
+    } catch (err) {
+        console.error(err);
+        showToast('Error de conexión con el servidor.', 'err');
+    }
 }
 
 function loginConNuevaCuenta() {
@@ -1745,4 +1881,208 @@ function initMapaObras() {
 
     // Forzar redibujado por si el contenedor estaba oculto
     setTimeout(() => { map.invalidateSize(); }, 500);
+}
+
+// ═══════════════════════════════════════════════════
+// ADMIN RENDER LOGIC
+// ═══════════════════════════════════════════════════
+
+function renderAdminModules() {
+    renderAdminReportes();
+    renderAdminPagosHistorial();
+    renderAdminPagosPendientes();
+    renderAdminTramites();
+}
+
+function renderAdminReportes() {
+    const el = document.getElementById('admin-grid-reportes');
+    if (!el) return;
+    if (!DB.reportes || DB.reportes.length === 0) {
+        el.innerHTML = '<p class="text-muted">No hay reportes ciudadanos registrados.</p>';
+        return;
+    }
+    el.innerHTML = DB.reportes.map(r => `
+        <div class="item-card">
+            <div class="item-card-top">
+                <div>
+                    <div class="item-title">${r.cat}</div>
+                    <div class="item-meta"><i class="fa-solid fa-location-dot"></i> ${r.ubi}</div>
+                    <div class="item-meta"><i class="fa-regular fa-calendar"></i> ${r.fecha}</div>
+                    <div class="item-meta" style="margin-top:4px;"><strong>Prioridad:</strong> <span style="color:${r.prioridad==='Alta'?'var(--danger)':'var(--text-sub)'}">${r.prioridad}</span></div>
+                </div>
+                <span class="badge ${r.badge}">${r.estado}</span>
+            </div>
+            <div class="item-actions mt-3">
+                <button class="btn btn-outline w-100" onclick="showToast('Detalle de reporte abierto')"><i class="fa-solid fa-eye"></i> Ver Detalle</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderAdminPagosHistorial() {
+    const tbody = document.getElementById('admin-tbody-pagos');
+    if (!tbody) return;
+    if (!DB.historialPagos || DB.historialPagos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No hay pagos registrados.</td></tr>';
+        return;
+    }
+    
+    // Reverse to show latest first
+    const pagos = [...DB.historialPagos].reverse();
+    
+    tbody.innerHTML = pagos.map(p => `
+        <tr>
+            <td><strong>#${p.id}</strong></td>
+            <td>Juan Ciudadano</td>
+            <td>${p.servicio}</td>
+            <td>${p.fecha}</td>
+            <td><span class="badge badge-blue"><i class="fa-solid ${p.metodo === 'tarjeta' ? 'fa-credit-card' : 'fa-building-columns'}"></i> ${p.metodo === 'tarjeta' ? 'Tarjeta' : 'Transferencia'}</span></td>
+            <td><strong>$${p.monto.toFixed(2)}</strong></td>
+            <td><span class="badge badge-success">Completado</span></td>
+        </tr>
+    `).join('');
+}
+
+function renderAdminPagosPendientes() {
+    const el = document.getElementById('admin-grid-pendientes');
+    if (!el) return;
+    
+    if (!DB.pagos || DB.pagos.length === 0) {
+        el.innerHTML = '<p class="text-muted">No hay obligaciones pendientes registradas.</p>';
+        return;
+    }
+    
+    el.innerHTML = DB.pagos.map(p => `
+        <div class="item-card">
+            <div class="item-card-top">
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <div class="sc-icon red" style="flex-shrink:0;"><i class="fa-solid ${p.icono}"></i></div>
+                    <div>
+                        <div class="item-title">${p.tipo}</div>
+                        <div class="item-meta"><i class="fa-solid fa-user"></i> Juan Ciudadano</div>
+                        <div class="item-meta"><i class="fa-solid fa-barcode"></i> ${p.cuenta}</div>
+                        <div class="item-meta"><i class="fa-regular fa-calendar-xmark"></i> Vence: ${p.vences || p.vence}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="item-actions mt-3" style="justify-content:space-between; align-items:center;">
+                <span class="amount-big" style="color:var(--danger); font-size:1.3rem;">$${p.monto.toFixed(2)}</span>
+                <button class="btn btn-outline" style="font-size:0.8rem;" onclick="showToast('Notificación enviada al ciudadano', 'info')"><i class="fa-solid fa-bell"></i> Notificar</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderAdminTramites() {
+    const el = document.getElementById('admin-grid-tramites');
+    if (!el) return;
+    
+    if (!DB.tramites || DB.tramites.length === 0) {
+        el.innerHTML = '<p class="text-muted">No hay trámites registrados en el sistema.</p>';
+        return;
+    }
+    
+    el.innerHTML = DB.tramites.map(t => `
+        <div class="item-card">
+            <div class="item-card-top">
+                <div>
+                    <div class="item-title">${t.tipo}</div>
+                    <div class="item-meta"><i class="fa-solid fa-hashtag"></i> ${t.id}</div>
+                    <div class="item-meta"><i class="fa-regular fa-calendar"></i> Ingreso: ${t.fecha}</div>
+                    <div class="item-meta" style="margin-top:4px;"><i class="fa-solid fa-user"></i> Juan Ciudadano</div>
+                </div>
+                <span class="badge ${t.badge}">${t.estado}</span>
+            </div>
+            <div class="item-actions mt-3">
+                <button class="btn btn-primary w-100" onclick="showToast('Aprobando trámite ${t.id}')"><i class="fa-solid fa-check"></i> Validar Trámite</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ── Lógica de Búsqueda Admin ──
+function buscarTramitesAdmin() {
+    const cedula = document.getElementById('admin-search-tramites').value.trim();
+    if (!cedula) {
+        showToast('Ingrese una cédula para buscar.', 'err');
+        renderAdminTramites(); // Restaurar todos
+        return;
+    }
+    
+    // Simular búsqueda (en un sistema real filtraría por la base de datos)
+    showToast('Buscando trámites de la cédula: ' + cedula, 'info');
+    const el = document.getElementById('admin-grid-tramites');
+    
+    // Filtro simulado
+    const filtrados = DB.tramites.filter(t => t.id.includes(cedula.substring(0, 3)) || true); 
+    
+    if (filtrados.length > 0) {
+        el.innerHTML = filtrados.map(t => `
+            <div class="item-card">
+                <div class="item-card-top">
+                    <div>
+                        <div class="item-title">${t.tipo}</div>
+                        <div class="item-meta"><i class="fa-solid fa-hashtag"></i> ${t.id}</div>
+                        <div class="item-meta"><i class="fa-regular fa-calendar"></i> Ingreso: ${t.fecha}</div>
+                        <div class="item-meta" style="margin-top:4px;"><i class="fa-solid fa-id-card"></i> C.I. ${cedula}</div>
+                    </div>
+                    <span class="badge ${t.badge}">${t.estado}</span>
+                </div>
+                <div class="item-actions mt-3">
+                    <button class="btn btn-primary w-100" onclick="showToast('Aprobando trámite ${t.id}')"><i class="fa-solid fa-check"></i> Validar Trámite</button>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        el.innerHTML = '<p class="text-muted">No se encontraron trámites para esta cédula.</p>';
+    }
+}
+
+function buscarPagosAdmin() {
+    const cedula = document.getElementById('admin-search-pagos').value.trim();
+    if (!cedula) {
+        showToast('Ingrese una cédula para buscar.', 'err');
+        renderAdminPagosHistorial();
+        renderAdminPagosPendientes();
+        return;
+    }
+    
+    showToast('Consultando pagos de la cédula: ' + cedula, 'info');
+    
+    // Simular que se encontró al usuario
+    const elPendientes = document.getElementById('admin-grid-pendientes');
+    const elHistorial = document.getElementById('admin-tbody-pagos');
+    
+    // Mostramos la data simulando que le pertenece a esa cédula
+    elPendientes.innerHTML = DB.pagos.map(p => `
+        <div class="item-card">
+            <div class="item-card-top">
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <div class="sc-icon red" style="flex-shrink:0;"><i class="fa-solid ${p.icono}"></i></div>
+                    <div>
+                        <div class="item-title">${p.tipo}</div>
+                        <div class="item-meta"><i class="fa-solid fa-id-card"></i> C.I. ${cedula}</div>
+                        <div class="item-meta"><i class="fa-solid fa-barcode"></i> ${p.cuenta}</div>
+                        <div class="item-meta"><i class="fa-regular fa-calendar-xmark"></i> Vence: ${p.vences || p.vence}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="item-actions mt-3" style="justify-content:space-between; align-items:center;">
+                <span class="amount-big" style="color:var(--danger); font-size:1.3rem;">$${p.monto.toFixed(2)}</span>
+                <button class="btn btn-outline" style="font-size:0.8rem;" onclick="showToast('Notificación enviada al ciudadano', 'info')"><i class="fa-solid fa-bell"></i> Notificar</button>
+            </div>
+        </div>
+    `).join('');
+    
+    elHistorial.innerHTML = [...DB.historialPagos].reverse().map(p => `
+        <tr>
+            <td><strong>#${p.id}</strong></td>
+            <td>C.I. ${cedula}</td>
+            <td>${p.servicio}</td>
+            <td>${p.fecha}</td>
+            <td><span class="badge badge-blue"><i class="fa-solid ${p.metodo === 'tarjeta' ? 'fa-credit-card' : 'fa-building-columns'}"></i> ${p.metodo === 'tarjeta' ? 'Tarjeta' : 'Transferencia'}</span></td>
+            <td><strong>$${p.monto.toFixed(2)}</strong></td>
+            <td><span class="badge badge-success">Completado</span></td>
+        </tr>
+    `).join('');
 }

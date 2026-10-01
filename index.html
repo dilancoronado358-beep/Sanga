@@ -24,45 +24,82 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
+    <div id="global-loader">
+        <div class="loader-content">
+            <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1790887033/escudo_montufar-removebg-preview_ayezkb.png" alt="Escudo" class="loader-logo">
+            <div class="spinner-rings">
+                <div></div><div></div><div></div>
+            </div>
+            <p class="loader-text">Accediendo al Sistema...</p>
+        </div>
+    </div>
     <div id="app-root">
         <div id="toast-container"></div>
 
         <!-- ============================================================
          VISTA 1: LOGIN
     ============================================================ -->
-        <div id="view-login" class="app-view active">
-            <div class="login-bg">
-                <div class="login-card">
-                    <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png"
-                        alt="Logo Municipio de Montúfar" class="login-logo">
-                    <h1 class="login-brand">SANGA</h1>
-                    <p class="login-subtitle">El Municipio de Montúfar en tus manos</p>
-                    <form id="form-login" class="login-form">
-                        <div class="form-group">
-                            <label><i class="fa-solid fa-id-card"></i> Cédula de Identidad</label>
-                            <input type="text" id="login-cedula" placeholder="Ej. 0401234567" maxlength="10">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fa-solid fa-lock"></i> Contraseña</label>
-                            <input type="password" id="login-pass" placeholder="••••••••">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-large w-100"><i
-                                class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar al Sistema</button>
-                    </form>
-                    <button class="btn-register" onclick="openModal('modal-registro')"><i
-                            class="fa-solid fa-user-plus"></i> ¿Eres nuevo? Crear mi cuenta ciudadana</button>
-                    <div class="login-divider"><span>o también puedes</span></div>
-                    <div class="login-options">
-                        <button class="btn btn-outline w-100" onclick="simulateBiometrics()"><i
-                                class="fa-solid fa-fingerprint"></i> Biometría / Rostro</button>
-                        <button class="btn btn-ghost w-100 mt-2" onclick="switchView('view-admin')"><i
-                                class="fa-solid fa-user-shield"></i> Soy Funcionario Municipal</button>
+        <div id="view-login" class="app-view active" style="background: linear-gradient(rgba(9, 9, 12, 0.6), rgba(9, 9, 12, 0.8)), url('https://res.cloudinary.com/dtmqftcsr/image/upload/v1790886597/Parque_de_San_Gabriel__Carchi__Ecuador_iygv1y.jpg') center/cover no-repeat; overflow: hidden; position: relative; z-index: 1; align-items: center; justify-content: center;">
+            <!-- Decoraciones de fondo (líneas sci-fi, luces) -->
+            <div style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: -1; overflow: hidden;">
+                <!-- Fondo con patrón de líneas -->
+                <div style="position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);"></div>
+                <!-- Luces de colores -->
+                <div style="position: absolute; bottom: -20%; left: 10%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(0,238,255,0.12) 0%, transparent 60%); filter: blur(50px);"></div>
+                <div style="position: absolute; bottom: -20%; right: 10%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(255,0,85,0.12) 0%, transparent 60%); filter: blur(50px);"></div>
+                
+                <!-- Formas geométricas -->
+                <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 300px solid transparent; border-right: 300px solid transparent; border-bottom: 200px solid rgba(255,255,255,0.015);"></div>
+                <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 200px solid transparent; border-right: 200px solid transparent; border-bottom: 150px solid rgba(255,255,255,0.02);"></div>
+            </div>
+
+            <div class="glass-login-wrap">
+                <div class="glass-login-card">
+                    <!-- Side tabs decorativas -->
+                    <div class="glc-decor left-tabs">
+                        <span></span><span></span><span></span><span></span>
                     </div>
-                    <p class="login-footer">Al ingresar aceptas nuestras <a href="#">Políticas de Privacidad y
-                            Protección de Datos</a></p>
+                    <!-- Bottom right decorativas -->
+                    <div class="glc-decor bottom-tabs">
+                        <span></span><span></span><span></span>
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1790887033/escudo_montufar-removebg-preview_ayezkb.png" alt="Escudo Montúfar" style="height: 100px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));">
+                    </div>
+                    
+                    <h1 class="glc-title">Iniciar Sesión</h1>
+                    <p class="glc-subtitle">Acceso ciudadano al GAD Municipal de Montúfar. Tu cantón a un clic de distancia.</p>
+                    
+                    <div class="glc-options">
+                        <button type="button" class="glc-opt-btn" onclick="simulateBiometrics()"><i class="fa-solid fa-fingerprint"></i> Biometría</button>
+                        <button type="button" class="glc-opt-btn" onclick="openModal('modal-registro')"><i class="fa-solid fa-user-plus"></i> Registro</button>
+                    </div>
+                    
+                    <div class="glc-divider"></div>
+                    
+                    <form id="form-login" class="glc-form">
+                        <div class="glc-group">
+                            <label>Cédula</label>
+                            <input type="text" id="login-cedula" placeholder="Ingrese su cédula" maxlength="10">
+                        </div>
+                        <div class="glc-group">
+                            <label>Contraseña</label>
+                            <div style="position: relative;">
+                                <input type="password" id="login-pass" placeholder="Ingrese su contraseña">
+                                <button type="button" class="glc-eye-btn" onclick="const p = document.getElementById('login-pass'); const i = this.querySelector('i'); if(p.type==='password'){p.type='text'; i.className='fa-regular fa-eye';}else{p.type='password'; i.className='fa-regular fa-eye-slash';}"><i class="fa-regular fa-eye-slash"></i></button>
+                            </div>
+                        </div>
+                        <button type="submit" class="glc-submit-btn">Ingresar</button>
+                    </form>
+                    
+                    <div style="text-align: center; margin-top: 24px; position: relative; z-index: 10;">
+                        <button type="button" class="btn btn-ghost" style="color: rgba(255,255,255,0.3); font-size: 0.75rem;" onclick="openModal('modal-admin-login')">Soy Funcionario Municipal</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -178,7 +215,7 @@
                         <div class="hero-banner">
                             <div class="hero-text">
                                 <p class="hero-date" id="hero-date"></p>
-                                <h1>¡Bienvenido, Juan!</h1>
+                                <h1 id="hero-welcome-msg">¡Bienvenido!</h1>
                                 <p class="hero-sub">GAD Municipal de Montúfar · San Gabriel</p>
                                 <p class="hero-slogan">El Municipio no espera que vayas. Llega hasta ti.</p>
                                 <div class="hero-btns">
@@ -704,7 +741,10 @@
                     <button class="nav-btn" data-page="admin-tramites"><i class="fa-solid fa-inbox"></i> Bandeja
                         Trámites</button>
                     <button class="nav-btn" data-page="admin-reportes"><i class="fa-solid fa-triangle-exclamation"></i>
-                        Reportes Ciudadanos</button>
+                        Gestión Reportes</button>
+                    <button class="nav-btn" data-page="admin-pagos"><i class="fa-solid fa-money-bill-transfer"></i>
+                        Control Pagos</button>
+                    
                     <div class="nav-divider"></div>
                     <button class="nav-btn text-danger" onclick="logout()"><i
                             class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
@@ -796,6 +836,98 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- ── BANDEJA DE TRÁMITES ── -->
+                    <div id="admin-tramites" class="page">
+                        <div class="page-hdr mb-4">
+                            <div>
+                                <h2><i class="fa-solid fa-inbox"></i> Bandeja de Trámites</h2>
+                                <p class="text-muted">Consulta de trámites ingresados por la ciudadanía</p>
+                            </div>
+                        </div>
+
+                        <!-- Buscador por cédula -->
+                        <div style="background:var(--surface); padding:20px; border-radius:12px; border:1px solid var(--border-soft); margin-bottom:24px; display:flex; gap:16px; align-items:flex-end;">
+                            <div style="flex-grow:1;">
+                                <label style="display:block; margin-bottom:8px; font-weight:600; font-size:0.9rem; color:var(--text-sub);">Buscar ciudadano por cédula:</label>
+                                <input type="text" id="admin-search-tramites" placeholder="Ingrese el número de cédula..." style="width:100%; padding:12px 16px; border-radius:8px; border:1px solid var(--border-soft); background:var(--bg-body); color:var(--text-main);">
+                            </div>
+                            <button class="btn btn-primary" onclick="buscarTramitesAdmin()"><i class="fa-solid fa-search"></i> Buscar</button>
+                        </div>
+
+                        <div class="grid-cards" id="admin-grid-tramites" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+                            <!-- Llenado por JS -->
+                        </div>
+                    </div>
+
+                    <!-- ── PANEL DE CONTROL DE PAGOS ── -->
+                    <div id="admin-pagos" class="page">
+                        <div class="page-hdr mb-4">
+                            <div>
+                                <h2><i class="fa-solid fa-money-bill-transfer"></i> Control de Pagos</h2>
+                                <p class="text-muted">Gestión de pagos realizados y obligaciones pendientes por ciudadano</p>
+                            </div>
+                        </div>
+
+                        <!-- Buscador por cédula -->
+                        <div style="background:var(--surface); padding:20px; border-radius:12px; border:1px solid var(--border-soft); margin-bottom:24px; display:flex; gap:16px; align-items:flex-end;">
+                            <div style="flex-grow:1;">
+                                <label style="display:block; margin-bottom:8px; font-weight:600; font-size:0.9rem; color:var(--text-sub);">Consultar pagos por cédula:</label>
+                                <input type="text" id="admin-search-pagos" placeholder="Ingrese el número de cédula..." style="width:100%; padding:12px 16px; border-radius:8px; border:1px solid var(--border-soft); background:var(--bg-body); color:var(--text-main);">
+                            </div>
+                            <button class="btn btn-primary" onclick="buscarPagosAdmin()"><i class="fa-solid fa-search"></i> Consultar</button>
+                        </div>
+
+                        <div class="pay-tabs-bar mb-3" style="border-bottom:1px solid var(--border-soft); margin-bottom:20px;">
+                            <button class="pay-tab active" onclick="document.getElementById('admin-pagos-historial').classList.remove('d-none'); document.getElementById('admin-pagos-pendientes').classList.add('d-none'); this.classList.add('active'); this.nextElementSibling.classList.remove('active');">
+                                <i class="fa-solid fa-check-double"></i> Pagos Realizados
+                            </button>
+                            <button class="pay-tab" onclick="document.getElementById('admin-pagos-pendientes').classList.remove('d-none'); document.getElementById('admin-pagos-historial').classList.add('d-none'); this.classList.add('active'); this.previousElementSibling.classList.remove('active');">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Obligaciones Pendientes
+                            </button>
+                        </div>
+
+                        <!-- Pagos Historial -->
+                        <div id="admin-pagos-historial">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Recibo</th>
+                                        <th>Ciudadano</th>
+                                        <th>Concepto</th>
+                                        <th>Fecha</th>
+                                        <th>Método</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-tbody-pagos">
+                                    <!-- Llenado por JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagos Pendientes -->
+                        <div id="admin-pagos-pendientes" class="d-none">
+                            <div class="grid-cards" id="admin-grid-pendientes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+                                <!-- Llenado por JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── PANEL DE REPORTES ── -->
+                    <div id="admin-reportes" class="page">
+                        <div class="page-hdr mb-4">
+                            <div>
+                                <h2><i class="fa-solid fa-triangle-exclamation"></i> Reportes Ciudadanos (Reclamos)</h2>
+                                <p class="text-muted">Gestión y atención de incidencias en la vía pública</p>
+                            </div>
+                        </div>
+                        <div class="grid-cards" id="admin-grid-reportes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                            <!-- Llenado por JS -->
+                        </div>
+                    </div>
+
                 </div>
             </main>
         </div>
@@ -803,6 +935,30 @@
         <!-- ============================================================
          MODALES
     ============================================================ -->
+
+        <!-- Modal Admin Login -->
+        <div id="modal-admin-login" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-hdr">
+                    <h3><i class="fa-solid fa-user-shield"></i> Acceso Funcionario</h3>
+                    <button class="close-btn" onclick="closeModal('modal-admin-login')"><i
+                            class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="event.preventDefault(); doAdminLogin();">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-envelope"></i> Correo Institucional</label>
+                            <input type="email" id="admin-login-email" placeholder="funcionario@montufar.gob.ec" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-lock"></i> Contraseña</label>
+                            <input type="password" id="admin-login-pass" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar al Panel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <!-- Modal Nuevo Trámite -->
         <div id="modal-nuevo-tramite" class="modal-overlay">
@@ -1040,6 +1196,29 @@
                             class="fa-solid fa-xmark"></i></button>
                 </div>
                 <div class="modal-body" id="detalle-content"></div>
+            </div>
+        </div>
+
+        <!-- Modal Admin Login -->
+        <div id="modal-admin-login" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-hdr">
+                    <h3><i class="fa-solid fa-user-shield"></i> Acceso Funcionario</h3>
+                    <button class="close-btn" onclick="closeModal('modal-admin-login')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="event.preventDefault(); doAdminLogin();">
+                        <div class="form-group">
+                            <label>Correo Institucional</label>
+                            <input type="email" id="admin-login-email" placeholder="dcoronado@ensing.lat" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña</label>
+                            <input type="password" id="admin-login-pass" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-3"><i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema</button>
+                    </form>
+                </div>
             </div>
         </div>
 
