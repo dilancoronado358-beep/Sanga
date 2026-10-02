@@ -948,6 +948,58 @@ function quickChat(text) {
     sendMessage();
 }
 
+// ── RECONOCIMIENTO DE VOZ (SPEECH TO TEXT) ──
+function startSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        showToast('Tu navegador actual no soporta reconocimiento de voz.', 'err');
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'es-EC'; // Español Ecuador
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    const micBtn = document.getElementById('mic-btn');
+    const chatInput = document.getElementById('chat-input');
+    const originalColor = micBtn.style.color;
+    
+    recognition.onstart = function() {
+        micBtn.style.color = 'var(--danger)'; // Cambia a rojo para indicar grabación
+        micBtn.innerHTML = '<i class="fa-solid fa-microphone-lines fa-fade"></i>';
+        showToast('Escuchando...', 'info');
+    };
+
+    recognition.onspeechend = function() {
+        recognition.stop();
+        resetMicIcon();
+    };
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        chatInput.value = transcript;
+        showToast('Texto capturado. Puedes enviarlo o editarlo.');
+        resetMicIcon();
+    };
+
+    recognition.onerror = function(event) {
+        resetMicIcon();
+        if(event.error === 'not-allowed') {
+            showToast('Permiso de micrófono denegado.', 'err');
+        } else {
+            showToast('Error al escuchar, intenta de nuevo.', 'err');
+        }
+    };
+
+    function resetMicIcon() {
+        micBtn.style.color = originalColor;
+        micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+    }
+
+    recognition.start();
+}
+
 function sendMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
