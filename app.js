@@ -261,6 +261,27 @@ function hideLoader() {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadDB();
+    
+    // Check Session Persistence
+    const sess = localStorage.getItem('sanga_session');
+    if (sess) {
+        try {
+            const session = JSON.parse(sess);
+            if (session.type === 'citizen') {
+                DB.usuario = session.data;
+                switchView('view-citizen');
+                navToPage('page-dashboard');
+                renderAllModules();
+            } else if (session.type === 'admin') {
+                switchView('view-admin');
+                navToPage('admin-dash');
+                renderAdminModules();
+            }
+        } catch (e) {
+            console.error('Error parsing session', e);
+        }
+    }
+
     // Login
     document.getElementById('form-login').addEventListener('submit', e => {
         e.preventDefault();
@@ -318,6 +339,9 @@ async function doLogin() {
             telefono: data.telefono,
             parroquia: data.parroquia
         };
+        
+        localStorage.setItem('sanga_session', JSON.stringify({ type: 'citizen', data: DB.usuario }));
+
         showLoader();
         setTimeout(() => {
             hideLoader();
@@ -355,7 +379,9 @@ async function doAdminLogin() {
         }
 
         closeModal('modal-admin-login');
-        
+
+        localStorage.setItem('sanga_session', JSON.stringify({ type: 'admin', data: data }));
+
         showLoader();
         setTimeout(() => {
             hideLoader();
@@ -528,6 +554,7 @@ function navToPage(pageId) {
 }
 
 function logout() {
+    localStorage.removeItem('sanga_session');
     switchView('view-login');
     showToast('Sesión cerrada correctamente.', 'info');
 }
@@ -565,7 +592,7 @@ function updateProfileDisplay() {
     const sbAv = document.getElementById('sb-avatar');
     const sbName = document.getElementById('sb-user-name');
     const heroMsg = document.getElementById('hero-welcome-msg');
-    
+
     if (nameEl) nameEl.textContent = u.nombre + ' ' + (u.apellido || '');
     if (cedEl) cedEl.innerHTML = `<i class="fa-solid fa-id-card"></i> C.I. ${u.cedula}`;
     if (emEl) emEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${u.correo}`;
@@ -574,6 +601,9 @@ function updateProfileDisplay() {
     if (sbAv) sbAv.textContent = initials;
     if (sbName) sbName.textContent = u.nombre + ' ' + (u.apellido || '');
     if (heroMsg) heroMsg.textContent = '¡Bienvenido, ' + u.nombre + '!';
+
+    const astGreeting = document.getElementById('assistant-greeting-name');
+    if (astGreeting) astGreeting.textContent = u.nombre;
 }
 
 function toggleSidebar() {
@@ -1549,8 +1579,31 @@ function sendReciboEmail() {
 // 7. EMERGENCIAS Y NOTIFICACIONES
 // ═══════════════════════════════════════════════════
 function reportEmergency() {
-    if (confirm('¿Confirmas el envío de una ALERTA DE EMERGENCIA al Municipio de Montúfar y a las autoridades competentes con tu ubicación GPS actual?')) {
-        showToast('🚨 Alerta enviada. Las autoridades han sido notificadas.', 'warn');
+    if (confirm('¿Confirmas el envío de una ALERTA DE PELIGRO al Municipio de Montúfar? Se requerirá acceso a tu ubicación para el rastreo en tiempo real.')) {
+        if (!navigator.geolocation) {
+            showToast('Tu navegador no soporta la geolocalización.', 'err');
+            return;
+        }
+
+        showToast('📍 Solicitando permiso de ubicación...', 'info');
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                // Simulación de envío al municipio
+                console.log(`Alerta de emergencia enviada: Lat ${lat}, Lng ${lng}`);
+                showToast(`🚨 ALERTA ROJA ENVIADA. El municipio tiene tu ubicación en tiempo real.`, 'warn');
+            },
+            (error) => {
+                let errorMsg = 'Error al obtener la ubicación.';
+                if (error.code === error.PERMISSION_DENIED) {
+                    errorMsg = 'Permiso denegado. No se puede enviar la alerta sin tu ubicación.';
+                }
+                showToast(errorMsg, 'err');
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
     }
 }
 
@@ -1908,7 +1961,7 @@ function renderAdminReportes() {
                     <div class="item-title">${r.cat}</div>
                     <div class="item-meta"><i class="fa-solid fa-location-dot"></i> ${r.ubi}</div>
                     <div class="item-meta"><i class="fa-regular fa-calendar"></i> ${r.fecha}</div>
-                    <div class="item-meta" style="margin-top:4px;"><strong>Prioridad:</strong> <span style="color:${r.prioridad==='Alta'?'var(--danger)':'var(--text-sub)'}">${r.prioridad}</span></div>
+                    <div class="item-meta" style="margin-top:4px;"><strong>Prioridad:</strong> <span style="color:${r.prioridad === 'Alta' ? 'var(--danger)' : 'var(--text-sub)'}">${r.prioridad}</span></div>
                 </div>
                 <span class="badge ${r.badge}">${r.estado}</span>
             </div>
@@ -1926,10 +1979,10 @@ function renderAdminPagosHistorial() {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No hay pagos registrados.</td></tr>';
         return;
     }
-    
+
     // Reverse to show latest first
     const pagos = [...DB.historialPagos].reverse();
-    
+
     tbody.innerHTML = pagos.map(p => `
         <tr>
             <td><strong>#${p.id}</strong></td>
@@ -1946,12 +1999,12 @@ function renderAdminPagosHistorial() {
 function renderAdminPagosPendientes() {
     const el = document.getElementById('admin-grid-pendientes');
     if (!el) return;
-    
+
     if (!DB.pagos || DB.pagos.length === 0) {
         el.innerHTML = '<p class="text-muted">No hay obligaciones pendientes registradas.</p>';
         return;
     }
-    
+
     el.innerHTML = DB.pagos.map(p => `
         <div class="item-card">
             <div class="item-card-top">
@@ -1976,12 +2029,12 @@ function renderAdminPagosPendientes() {
 function renderAdminTramites() {
     const el = document.getElementById('admin-grid-tramites');
     if (!el) return;
-    
+
     if (!DB.tramites || DB.tramites.length === 0) {
         el.innerHTML = '<p class="text-muted">No hay trámites registrados en el sistema.</p>';
         return;
     }
-    
+
     el.innerHTML = DB.tramites.map(t => `
         <div class="item-card">
             <div class="item-card-top">
@@ -2008,14 +2061,14 @@ function buscarTramitesAdmin() {
         renderAdminTramites(); // Restaurar todos
         return;
     }
-    
+
     // Simular búsqueda (en un sistema real filtraría por la base de datos)
     showToast('Buscando trámites de la cédula: ' + cedula, 'info');
     const el = document.getElementById('admin-grid-tramites');
-    
+
     // Filtro simulado
-    const filtrados = DB.tramites.filter(t => t.id.includes(cedula.substring(0, 3)) || true); 
-    
+    const filtrados = DB.tramites.filter(t => t.id.includes(cedula.substring(0, 3)) || true);
+
     if (filtrados.length > 0) {
         el.innerHTML = filtrados.map(t => `
             <div class="item-card">
@@ -2046,13 +2099,13 @@ function buscarPagosAdmin() {
         renderAdminPagosPendientes();
         return;
     }
-    
+
     showToast('Consultando pagos de la cédula: ' + cedula, 'info');
-    
+
     // Simular que se encontró al usuario
     const elPendientes = document.getElementById('admin-grid-pendientes');
     const elHistorial = document.getElementById('admin-tbody-pagos');
-    
+
     // Mostramos la data simulando que le pertenece a esa cédula
     elPendientes.innerHTML = DB.pagos.map(p => `
         <div class="item-card">
@@ -2073,7 +2126,7 @@ function buscarPagosAdmin() {
             </div>
         </div>
     `).join('');
-    
+
     elHistorial.innerHTML = [...DB.historialPagos].reverse().map(p => `
         <tr>
             <td><strong>#${p.id}</strong></td>
@@ -2086,3 +2139,75 @@ function buscarPagosAdmin() {
         </tr>
     `).join('');
 }
+
+// --- Drag SOS Button ---
+document.addEventListener('DOMContentLoaded', () => {
+    const sosContainer = document.getElementById('sos-container');
+    const dragHandle = sosContainer ? sosContainer.querySelector('.drag-handle') : null;
+    
+    if (sosContainer && dragHandle) {
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+
+        dragHandle.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialX = sosContainer.offsetLeft;
+            initialY = sosContainer.offsetTop;
+            sosContainer.style.bottom = 'auto';
+            sosContainer.style.right = 'auto';
+            sosContainer.style.left = initialX + 'px';
+            sosContainer.style.top = initialY + 'px';
+            dragHandle.style.cursor = 'grabbing';
+            sosContainer.classList.remove('pulse-animation');
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            sosContainer.style.left = (initialX + dx) + 'px';
+            sosContainer.style.top = (initialY + dy) + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                dragHandle.style.cursor = 'move';
+                sosContainer.classList.add('pulse-animation');
+            }
+        });
+    }
+});
+
+// --- SOS Toggle Logic ---
+function toggleSOSButton(forceState) {
+    const sosContainer = document.getElementById('sos-container');
+    const toggleBtn = document.getElementById('sos-toggle');
+    
+    if (sosContainer) {
+        let isVisible = sosContainer.style.display !== 'none';
+        let newState = forceState !== undefined ? forceState : !isVisible;
+        
+        if (newState) {
+            sosContainer.style.display = 'flex';
+            if (toggleBtn) toggleBtn.classList.add('active');
+            localStorage.setItem('sanga_sos_visible', 'true');
+        } else {
+            sosContainer.style.display = 'none';
+            if (toggleBtn) toggleBtn.classList.remove('active');
+            localStorage.setItem('sanga_sos_visible', 'false');
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const sosVisible = localStorage.getItem('sanga_sos_visible');
+    if (sosVisible === 'false') {
+        toggleSOSButton(false);
+    } else {
+        toggleSOSButton(true);
+    }
+});
