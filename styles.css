@@ -26,7 +26,7 @@
     --navy-light:     #dbeafe;
 
     --bg:          #f0f3f9;
-    --bg-overlay:  rgba(240, 243, 249, 0.88);
+    --bg-overlay:  rgba(240, 243, 249, 0.65);
     --surface:     #ffffff;
     --surface-2:   #f8faff;
     --surface-3:   #eef1f8;
@@ -65,7 +65,7 @@
     --accent-ultra:  #0d2820;
 
     --bg:          #080d1a;
-    --bg-overlay:  rgba(8, 13, 26, 0.88);
+    --bg-overlay:  rgba(8, 13, 26, 0.65);
     --surface:     #0f1629;
     --surface-2:   #131f38;
     --surface-3:   #182340;
