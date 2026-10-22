@@ -120,29 +120,6 @@
                     <div style="text-align: center; margin-top: 24px; position: relative; z-index: 10;">
                         <button type="button" class="btn btn-ghost" style="color: rgba(255,255,255,0.3); font-size: 0.75rem;" onclick="openModal('modal-admin-login')">Soy Funcionario Municipal</button>
                     </div>
-
-                    <!-- Modal: Configurar Biometría (primera vez) -->
-                    <div id="modal-bio-setup" class="bio-setup-overlay" style="display:none;" role="dialog" aria-label="Configurar acceso biométrico">
-                        <div class="bio-setup-card">
-                            <button class="bio-setup-close" onclick="document.getElementById('modal-bio-setup').style.display='none'" aria-label="Cerrar">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
-                            <div class="bio-setup-icon">
-                                <span class="bio-pulse-ring large"></span>
-                                <i class="fa-solid fa-fingerprint"></i>
-                            </div>
-                            <h3>Acceso Biométrico</h3>
-                            <p>Vincula tu huella dactilar o Face ID a tu cuenta para ingresar sin contraseña.</p>
-                            <div class="bio-setup-form">
-                                <label>Tu Cédula de Identidad</label>
-                                <input type="text" id="bio-cedula-input" placeholder="Ej: 0401234567" maxlength="10" inputmode="numeric">
-                            </div>
-                            <button class="bio-setup-btn" onclick="bioRegisterCredential()">
-                                <i class="fa-solid fa-fingerprint"></i> Activar Biometría
-                            </button>
-                            <p class="bio-setup-note"><i class="fa-solid fa-shield-halved"></i> Tu huella nunca sale del dispositivo. Solo se almacena localmente.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1533,6 +1510,29 @@
                 </div>
             </div>
             <button class="btn btn-primary w-100 mt-3" onclick="document.getElementById('pwa-ios-modal').style.display='none'">¡Entendido!</button>
+        </div>
+    </div>
+
+    <!-- Modal: Configurar Biometría (a nivel de body para que position:fixed funcione) -->
+    <div id="modal-bio-setup" class="bio-setup-overlay" style="display:none;" role="dialog" aria-label="Configurar acceso biométrico">
+        <div class="bio-setup-card">
+            <button class="bio-setup-close" onclick="document.getElementById('modal-bio-setup').style.display='none'" aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="bio-setup-icon">
+                <span class="bio-pulse-ring large"></span>
+                <i class="fa-solid fa-fingerprint"></i>
+            </div>
+            <h3>Acceso Biométrico</h3>
+            <p>Vincula tu huella dactilar o Face ID a tu cuenta para ingresar sin contraseña.</p>
+            <div class="bio-setup-form">
+                <label>Tu Cédula de Identidad</label>
+                <input type="text" id="bio-cedula-input" placeholder="Ej: 0401234567" maxlength="10" inputmode="numeric">
+            </div>
+            <button class="bio-setup-btn" onclick="bioRegisterCredential()">
+                <i class="fa-solid fa-fingerprint"></i> Activar Biometría
+            </button>
+            <p class="bio-setup-note"><i class="fa-solid fa-shield-halved"></i> Tu huella nunca sale del dispositivo. Solo se almacena localmente.</p>
         </div>
     </div>
 
