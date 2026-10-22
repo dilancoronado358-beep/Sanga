@@ -2401,3 +2401,108 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 })();
 
+
+// ═══════════════════════════════════════════════════
+// 11. PWA – REGISTRO SERVICE WORKER + BANNER INSTALACIÓN
+// ═══════════════════════════════════════════════════
+
+let _pwaInstallPrompt = null;
+let _pwaBannerDismissed = false;
+
+// ── 11a. Registrar Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        console.log('[SanGa SW] Registrado:', reg.scope);
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[SanGa SW] Nueva version disponible');
+            }
+          });
+        });
+      })
+      .catch(err => console.error('[SanGa SW] Error al registrar:', err));
+  });
+}
+
+// ── 11b. Capturar evento beforeinstallprompt (Android/Chrome) ──
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _pwaInstallPrompt = e;
+  console.log('[SanGa PWA] Listo para instalar');
+  if (!_pwaBannerDismissed && !localStorage.getItem('sanga_pwa_installed')) {
+    setTimeout(() => pwaShowBanner(), 3000);
+  }
+});
+
+// ── 11c. Detectar iOS (Safari) ──
+(function detectIOS() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('sanga_ios_guide_dismissed');
+  if (isIOS && !isStandalone && !dismissed) {
+    setTimeout(() => pwaShowIOSBanner(), 4000);
+  }
+})();
+
+// ── 11d. Detectar instalacion completada ──
+window.addEventListener('appinstalled', () => {
+  console.log('[SanGa PWA] App instalada exitosamente');
+  localStorage.setItem('sanga_pwa_installed', 'true');
+  pwaHideBanner();
+  if (typeof showToast === 'function') {
+    showToast('¡SanGa instalada! Ya puedes abrirla desde tu pantalla de inicio 🎉', 'success', 5000);
+  }
+});
+
+// ── 11e. Funciones globales del banner ──
+function pwaShowBanner() {
+  const banner = document.getElementById('pwa-install-banner');
+  if (!banner) return;
+  banner.style.display = '';
+  requestAnimationFrame(() => banner.classList.add('visible'));
+}
+
+function pwaHideBanner() {
+  const banner = document.getElementById('pwa-install-banner');
+  if (!banner) return;
+  banner.classList.remove('visible');
+  setTimeout(() => { banner.style.display = 'none'; }, 400);
+}
+
+function pwaDismissBanner() {
+  _pwaBannerDismissed = true;
+  localStorage.setItem('sanga_ios_guide_dismissed', '1');
+  pwaHideBanner();
+}
+
+async function pwaTriggerInstall() {
+  if (_pwaInstallPrompt) {
+    // Android / Chrome: prompt nativo
+    _pwaInstallPrompt.prompt();
+    const { outcome } = await _pwaInstallPrompt.userChoice;
+    console.log('[SanGa PWA] Usuario eligio:', outcome);
+    _pwaInstallPrompt = null;
+    pwaHideBanner();
+  } else {
+    // iOS / otros: mostrar guia manual
+    pwaHideBanner();
+    const modal = document.getElementById('pwa-ios-modal');
+    if (modal) modal.style.display = 'flex';
+  }
+}
+
+function pwaShowIOSBanner() {
+  const banner = document.getElementById('pwa-install-banner');
+  if (!banner) return;
+  // Cambiar texto del boton para iOS
+  const btn = document.getElementById('pwa-btn-install');
+  if (btn) {
+    btn.innerHTML = '<i class="fa-solid fa-arrow-up-from-bracket"></i> Como instalar';
+  }
+  banner.style.display = '';
+  requestAnimationFrame(() => banner.classList.add('visible'));
+}

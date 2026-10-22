@@ -1452,6 +1452,55 @@
         </div>
 
     </div><!-- /app-root -->
+
+    <!-- ═══════════════════════════════════════
+         BANNER DE INSTALACIÓN PWA
+    ═══════════════════════════════════════ -->
+    <div id="pwa-install-banner" class="pwa-install-banner" style="display:none;" aria-live="polite" role="dialog" aria-label="Instalar aplicación SanGa">
+        <div class="pwa-banner-inner">
+            <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" alt="SanGa" class="pwa-banner-icon">
+            <div class="pwa-banner-text">
+                <strong>Instalar SanGa</strong>
+                <span>Agrégala a tu pantalla de inicio</span>
+            </div>
+            <div class="pwa-banner-actions">
+                <button id="pwa-btn-install" class="pwa-btn-install" onclick="pwaTriggerInstall()">
+                    <i class="fa-solid fa-download"></i> Instalar
+                </button>
+                <button class="pwa-btn-dismiss" onclick="pwaDismissBanner()" aria-label="Cerrar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal guía iOS -->
+    <div id="pwa-ios-modal" class="pwa-ios-modal" style="display:none;" role="dialog" aria-label="Instrucciones instalación iOS">
+        <div class="pwa-ios-content">
+            <button class="pwa-ios-close" onclick="document.getElementById('pwa-ios-modal').style.display='none'" aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" alt="SanGa" class="pwa-ios-logo">
+            <h3>Instalar SanGa en iPhone</h3>
+            <p class="pwa-ios-subtitle">Sigue estos pasos en Safari:</p>
+            <div class="pwa-ios-steps">
+                <div class="pwa-ios-step">
+                    <span class="pwa-ios-num">1</span>
+                    <div>Toca el botón <strong>Compartir</strong> <i class="fa-solid fa-arrow-up-from-bracket"></i> en la barra inferior de Safari</div>
+                </div>
+                <div class="pwa-ios-step">
+                    <span class="pwa-ios-num">2</span>
+                    <div>Desplázate y toca <strong>"Agregar a pantalla de inicio"</strong> <i class="fa-solid fa-plus-square"></i></div>
+                </div>
+                <div class="pwa-ios-step">
+                    <span class="pwa-ios-num">3</span>
+                    <div>Toca <strong>"Agregar"</strong> en la esquina superior derecha</div>
+                </div>
+            </div>
+            <button class="btn btn-primary w-100 mt-3" onclick="document.getElementById('pwa-ios-modal').style.display='none'">¡Entendido!</button>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 

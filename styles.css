@@ -1865,3 +1865,119 @@ a { color:var(--primary); text-decoration:none; }
     }
 }
 
+
+/* -- Aliases clases nuevas del banner -- */
+.pwa-btn-install {
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #1e40af, #0f766e);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 14px rgba(30, 64, 175, 0.4);
+    white-space: nowrap;
+}
+.pwa-btn-install:hover  { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,64,175,0.5); }
+.pwa-btn-install:active { transform: scale(0.97); }
+
+.pwa-btn-dismiss {
+    flex-shrink: 0;
+    background: var(--surface-3, #f1f5f9);
+    border: 1px solid var(--border, #e2e8f0);
+    color: var(--text-sub, #64748b);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s, color 0.2s;
+}
+.pwa-btn-dismiss:hover { background: #fee2e2; color: #dc2626; border-color: #dc2626; }
+
+.pwa-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* -- Modal guia iOS -- */
+.pwa-ios-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0,0,0,0.65);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 12px 12px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: fadeIn 0.25s ease;
+}
+.pwa-ios-content {
+    background: var(--surface, #fff);
+    border-radius: 22px 22px 16px 16px;
+    padding: 28px 24px 24px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
+    animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+[data-theme="dark"] .pwa-ios-content { background: #1e293b; }
+.pwa-ios-close {
+    position: absolute;
+    top: 14px; right: 14px;
+    background: var(--surface-3, #f1f5f9);
+    border: none; border-radius: 50%;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.85rem;
+    color: var(--text-sub, #64748b);
+    transition: background 0.2s;
+}
+.pwa-ios-close:hover { background: #fee2e2; color: #dc2626; }
+.pwa-ios-logo {
+    display: block; width: 64px; height: 64px;
+    border-radius: 16px; object-fit: contain;
+    background: linear-gradient(135deg, #1e40af, #0f766e);
+    padding: 8px; margin: 0 auto 16px;
+}
+.pwa-ios-content h3 {
+    text-align: center; font-size: 1.1rem; font-weight: 700;
+    color: var(--text-h, #0f172a); margin: 0 0 4px;
+}
+.pwa-ios-subtitle {
+    text-align: center; color: var(--text-sub, #64748b);
+    font-size: 0.85rem; margin: 0 0 20px;
+}
+.pwa-ios-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 4px; }
+.pwa-ios-step {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--surface-2, #f8fafc);
+    border-radius: 12px; padding: 12px 14px;
+    font-size: 0.88rem; color: var(--text-h, #0f172a);
+}
+[data-theme="dark"] .pwa-ios-step { background: #0f172a; }
+.pwa-ios-num {
+    flex-shrink: 0; width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e40af, #0f766e);
+    color: #fff; font-size: 0.78rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+}
+@keyframes slideUp {
+    from { transform: translateY(60px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
