@@ -447,6 +447,37 @@ function bioSetupModal() {
     modal.style.display = 'flex';
     modal.classList.add('active');
 
+    // Si no hay credencial en localStorage, pero el usuario ya escribió su cédula, consultar Supabase
+    if (!storedRaw && loginCed && loginCed.value.trim().length === 10) {
+        const cedQuery = loginCed.value.trim();
+        supabaseClient
+            .from('ciudadanos')
+            .select('*')
+            .eq('cedula', cedQuery)
+            .single()
+            .then(({ data }) => {
+                if (data && data.bio_credential_id) {
+                    const bioData = {
+                        credentialId: data.bio_credential_id,
+                        cedula: data.cedula,
+                        nombre: data.nombre,
+                        apellido: data.apellido
+                    };
+                    localStorage.setItem('sanga_bio_credential', JSON.stringify(bioData));
+                    bioShowQuickBtn(data.nombre);
+                    if (registeredView && setupView) {
+                        const nameEl = document.getElementById('bio-reg-name');
+                        const cedEl = document.getElementById('bio-reg-cedula');
+                        if (nameEl) nameEl.textContent = `${data.nombre} ${data.apellido || ''}`;
+                        if (cedEl) cedEl.textContent = `C.I. ${data.cedula}`;
+                        registeredView.style.display = 'block';
+                        setupView.style.display = 'none';
+                    }
+                }
+            })
+            .catch(() => {});
+    }
+
     if (!storedRaw && bioCed) {
         setTimeout(() => bioCed.focus(), 250);
     }
@@ -472,13 +503,30 @@ function bioSwitchToSetup() {
     }
 }
 
-function bioRemoveCredential() {
-    if (confirm('¿Deseas desvincular tu huella dactilar de este dispositivo?')) {
+async function bioRemoveCredential() {
+    if (confirm('¿Deseas desvincular tu huella dactilar de este dispositivo y del sistema?')) {
+        const storedRaw = localStorage.getItem('sanga_bio_credential');
+        let ced = '';
+        if (storedRaw) {
+            try { ced = JSON.parse(storedRaw).cedula; } catch(e) {}
+        }
+
         localStorage.removeItem('sanga_bio_credential');
         const wrap = document.getElementById('bio-quick-btn-wrap');
         if (wrap) wrap.style.display = 'none';
+
+        // Desvincular en Supabase si la columna existe
+        if (ced) {
+            try {
+                await supabaseClient
+                    .from('ciudadanos')
+                    .update({ bio_credential_id: null })
+                    .eq('cedula', ced);
+            } catch(e) {}
+        }
+
         bioSwitchToSetup();
-        showToast('Huella desvinculada del dispositivo.', 'info');
+        showToast('Identidad biométrica desvinculada del sistema.', 'info');
     }
 }
 
@@ -575,11 +623,27 @@ async function bioRegisterCredential() {
             };
             localStorage.setItem('sanga_bio_credential', JSON.stringify(bioData));
 
+            // Respaldar ID de credencial biométrica en Supabase
+            try {
+                const { error: sbErr } = await supabaseClient
+                    .from('ciudadanos')
+                    .update({ bio_credential_id: bioData.credentialId })
+                    .eq('cedula', ced);
+
+                if (sbErr) {
+                    console.info('[Supabase Bio] Columna bio_credential_id pendiente de crear en Supabase:', sbErr.message);
+                } else {
+                    console.log('[Supabase Bio] Credencial biométrica respaldada en Supabase correctamente.');
+                }
+            } catch (e) {
+                console.info('[Supabase Bio] Excepción al actualizar:', e);
+            }
+
             // Actualizar vista del modal y botón rápido
             bioShowQuickBtn(userData.nombre);
             bioCloseModal();
 
-            showToast(`¡Biometría activada con éxito, ${userData.nombre}! 🎉 Ahora puedes ingresar con tu huella.`, 'success', 6000);
+            showToast(`¡Identidad biométrica vinculada con éxito, ${userData.nombre}! 🎉`, 'success', 6000);
         }
     } catch (err) {
         console.error('[Bio Register]', err);
@@ -604,23 +668,49 @@ async function bioRegisterCredential() {
 
 // ── Biometría: AUTENTICAR CON HUELLA / FACE ID ──
 async function simulateBiometrics() {
-    const storedRaw = localStorage.getItem('sanga_bio_credential');
+    let storedRaw = localStorage.getItem('sanga_bio_credential');
+    let stored = null;
 
     if (!window.PublicKeyCredential || !navigator.credentials) {
         showToast('Tu navegador no soporta autenticación biométrica.', 'err');
         return;
     }
 
-    if (!storedRaw) {
-        bioSetupModal();
-        return;
+    if (storedRaw) {
+        try {
+            stored = JSON.parse(storedRaw);
+        } catch(e) {
+            localStorage.removeItem('sanga_bio_credential');
+        }
     }
 
-    let stored;
-    try {
-        stored = JSON.parse(storedRaw);
-    } catch(e) {
-        localStorage.removeItem('sanga_bio_credential');
+    // Si no está en memoria local, buscar credencial en Supabase por cédula
+    if (!stored || !stored.credentialId) {
+        const candidateCed = (document.getElementById('login-cedula')?.value || document.getElementById('bio-cedula-input')?.value || '').trim();
+        if (candidateCed && candidateCed.length === 10) {
+            showToast('Verificando credencial en el Municipio...', 'info');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('ciudadanos')
+                    .select('*')
+                    .eq('cedula', candidateCed)
+                    .single();
+
+                if (data && data.bio_credential_id) {
+                    stored = {
+                        credentialId: data.bio_credential_id,
+                        cedula: data.cedula,
+                        nombre: data.nombre,
+                        apellido: data.apellido
+                    };
+                    localStorage.setItem('sanga_bio_credential', JSON.stringify(stored));
+                    bioShowQuickBtn(data.nombre);
+                }
+            } catch (e) {}
+        }
+    }
+
+    if (!stored || !stored.credentialId) {
         bioSetupModal();
         return;
     }
