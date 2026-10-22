@@ -23,7 +23,7 @@
         content="Primera asistente digital del Gobierno Autónomo Descentralizado Municipal de Montúfar. Trámites, pagos, reportes ciudadanos y más.">
     <meta name="application-name" content="SanGa">
 
-    <link rel="stylesheet" href="styles.css?v=6.0">
+    <link rel="stylesheet" href="styles.css?v=7.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1513,34 +1513,39 @@
         </div>
     </div>
 
-    <!-- Modal: Acceso y Configuración Biométrica (a nivel de body) -->
-    <div id="modal-bio-setup" class="modal-overlay bio-setup-overlay" style="display:none;" role="dialog" aria-label="Acceso Biométrico">
+    <!-- Modal: Acceso y Configuración Biométrica Institucional (a nivel de body) -->
+    <div id="modal-bio-setup" class="modal-overlay bio-setup-overlay" style="display:none;" role="dialog" aria-label="Identificación Biométrica">
         <div class="bio-setup-card">
             <button type="button" class="bio-setup-close" onclick="bioCloseModal()" aria-label="Cerrar">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             
-            <div class="bio-setup-icon">
-                <span class="bio-pulse-ring large"></span>
-                <i class="fa-solid fa-fingerprint"></i>
+            <div class="bio-header-badge">
+                <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1790887033/escudo_montufar-removebg-preview_ayezkb.png" alt="Escudo Cantón Montúfar" class="bio-crest-icon">
+                <span class="bio-fp-microbadge"><i class="fa-solid fa-fingerprint"></i></span>
             </div>
 
             <!-- VISTA A: Ya tiene credencial registrada en este dispositivo -->
             <div id="bio-registered-view" style="display:none;">
-                <h3 style="color:#f1f5f9; margin-bottom:6px;">Acceso Biométrico Activo</h3>
-                <div style="background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.3); border-radius:12px; padding:12px; margin:14px 0 18px; text-align:center;">
-                    <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.6);">Cuenta vinculada</div>
-                    <strong id="bio-reg-name" style="display:block; font-size:1.05rem; color:#60a5fa; margin-top:2px;">Ciudadano</strong>
-                    <span id="bio-reg-cedula" style="font-size:0.8rem; color:rgba(255,255,255,0.5);">Cédula: -</span>
+                <h3 class="bio-card-title">Acceso Biométrico</h3>
+                <p class="bio-card-sub">GAD Municipal de Montúfar</p>
+                <div class="bio-divider"></div>
+
+                <div class="bio-verified-box">
+                    <span class="bio-verified-label"><i class="fa-solid fa-circle-check"></i> Ciudadano Vinculado</span>
+                    <strong id="bio-reg-name" class="bio-verified-name">Ciudadano</strong>
+                    <span id="bio-reg-cedula" class="bio-verified-cedula">C.I. -</span>
                 </div>
-                <button type="button" class="bio-setup-btn" onclick="simulateBiometrics()">
-                    <i class="fa-solid fa-fingerprint"></i> Ingresar con Huella / Face ID
+
+                <button type="button" class="bio-formal-btn" onclick="simulateBiometrics()">
+                    <i class="fa-solid fa-fingerprint"></i> Ingresar al Sistema
                 </button>
-                <div style="display:flex; gap:8px; margin-top:8px;">
-                    <button type="button" class="btn btn-ghost w-100" onclick="bioSwitchToSetup()" style="font-size:0.78rem; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;">
-                        <i class="fa-solid fa-arrows-rotate"></i> Cambiar Cédula
+
+                <div class="bio-sec-actions">
+                    <button type="button" class="bio-sec-btn" onclick="bioSwitchToSetup()">
+                        <i class="fa-solid fa-id-card"></i> Cambiar Cédula
                     </button>
-                    <button type="button" class="btn btn-ghost" onclick="bioRemoveCredential()" style="font-size:0.78rem; color:#f87171; background:rgba(239,68,68,0.1); padding:10px; border-radius:10px;" title="Eliminar huella">
+                    <button type="button" class="bio-sec-btn danger" onclick="bioRemoveCredential()" title="Desvincular huella de este equipo">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
@@ -1548,26 +1553,26 @@
 
             <!-- VISTA B: Configurar credencial (primera vez o cambio de cédula) -->
             <div id="bio-setup-view">
-                <h3 style="color:#f1f5f9; margin-bottom:6px;">Configurar Huella / Face ID</h3>
-                <p style="font-size:0.85rem; color:rgba(255,255,255,0.6); margin-bottom:18px;">Ingresa tu cédula de ciudadano para vincular tu huella dactilar a tu cuenta SanGa.</p>
+                <h3 class="bio-card-title">Identificación Biométrica</h3>
+                <p class="bio-card-sub">GAD Municipal de Montúfar</p>
+                <div class="bio-divider"></div>
+
                 <div class="bio-setup-form">
-                    <label>Cédula de Identidad</label>
-                    <input type="text" id="bio-cedula-input" placeholder="Ej: 0401234567" maxlength="10" inputmode="numeric">
+                    <label for="bio-cedula-input"><i class="fa-solid fa-id-card"></i> Cédula de Identidad Ciudadana</label>
+                    <input type="text" id="bio-cedula-input" placeholder="0401234567" maxlength="10" inputmode="numeric" autocomplete="off">
                 </div>
-                <button type="button" class="bio-setup-btn" id="btn-bio-activate" onclick="bioRegisterCredential()">
-                    <i class="fa-solid fa-fingerprint"></i> Activar Biometría
+
+                <button type="button" class="bio-formal-btn" id="btn-bio-activate" onclick="bioRegisterCredential()">
+                    <i class="fa-solid fa-fingerprint"></i> Vincular Identidad Biométrica
                 </button>
-                <p class="bio-setup-note" style="margin-top:12px;">
-                    <i class="fa-solid fa-shield-halved"></i> Tu huella nunca sale del dispositivo. Validación segura con WebAuthn.
-                </p>
             </div>
 
             <!-- Mensajes de estado y advertencias -->
-            <div id="bio-status-msg" style="display:none; margin-top:14px; font-size:0.82rem; border-radius:10px; padding:10px 12px; text-align:left;"></div>
+            <div id="bio-status-msg" style="display:none;" class="bio-status-box"></div>
         </div>
     </div>
 
-    <script src="app.js?v=6.0"></script>
+    <script src="app.js?v=7.0"></script>
 </body>
 
 </html>

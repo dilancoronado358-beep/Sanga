@@ -1,12 +1,12 @@
-const CACHE_NAME = 'sanga-pwa-v6';
-const CACHE_EXTERNAL = 'sanga-external-v6';
+const CACHE_NAME = 'sanga-pwa-v7';
+const CACHE_EXTERNAL = 'sanga-external-v7';
 
 // Assets locales pre-cacheados para funcionamiento offline
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './styles.css?v=6.0',
-  './app.js?v=6.0',
+  './styles.css?v=7.0',
+  './app.js?v=7.0',
   './manifest.json'
 ];
 

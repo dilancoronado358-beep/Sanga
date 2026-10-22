@@ -2060,138 +2060,266 @@ a { color:var(--primary); text-decoration:none; }
     100% { transform: translateY(-50%) scale(1.7); opacity: 0; }
 }
 
-/* ── Modal setup biometría ── */
+/* ══════════════════════════════════════════════════
+   MODAL BIOMÉTRICO INSTITUCIONAL · GAD MONTÚFAR
+══════════════════════════════════════════════════ */
 .bio-setup-overlay {
     position: fixed;
     inset: 0;
     z-index: 99999 !important;
-    background: rgba(5, 12, 40, 0.8);
+    background: rgba(3, 7, 18, 0.78);
     display: none;
     align-items: center;
     justify-content: center;
     padding: 16px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     animation: fadeIn 0.2s ease;
 }
 .bio-setup-overlay.active,
 .bio-setup-overlay[style*="display: flex"] {
     display: flex !important;
 }
+
 .bio-setup-card {
-    background: #1e293b;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 24px;
-    padding: 30px 22px 24px;
+    background: linear-gradient(180deg, #131d35 0%, #0b1120 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 34px 28px 28px;
     width: 100%;
-    max-width: 420px;
+    max-width: 400px;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-    animation: mIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    animation: mIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     text-align: center;
+    color: #f8fafc;
 }
+
 .bio-setup-close {
     position: absolute;
-    top: 16px; right: 16px;
-    background: rgba(255,255,255,0.08);
-    border: none; border-radius: 50%;
-    width: 34px; height: 34px;
-    display: flex; align-items: center; justify-content: center;
+    top: 14px;
+    right: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    color: rgba(255,255,255,0.5);
-    font-size: 0.9rem;
-    transition: background 0.2s, color 0.2s;
-}
-.bio-setup-close:hover { background: rgba(220,38,38,0.2); color: #f87171; }
-
-.bio-setup-icon {
-    position: relative;
-    width: 80px; height: 80px;
-    margin: 0 auto 20px;
-    display: flex; align-items: center; justify-content: center;
-}
-.bio-setup-icon .fa-fingerprint {
-    font-size: 2.8rem;
-    background: linear-gradient(135deg, #60a5fa, #34d399);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    position: relative;
-    z-index: 1;
-}
-.bio-setup-card h3 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #f1f5f9;
-    margin: 0 0 8px;
-}
-.bio-setup-card > p {
+    color: rgba(255, 255, 255, 0.5);
     font-size: 0.85rem;
-    color: rgba(255,255,255,0.55);
-    margin: 0 0 22px;
-    line-height: 1.5;
+    transition: all 0.15s ease;
 }
-.bio-setup-form {
-    text-align: left;
-    margin-bottom: 18px;
+.bio-setup-close:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
 }
-.bio-setup-form label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 6px;
+
+.bio-header-badge {
+    position: relative;
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.bio-crest-icon {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+}
+.bio-fp-microbadge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 26px;
+    height: 26px;
+    background: #1e3a8a;
+    border: 2px solid #0f172a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #60a5fa;
+    font-size: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.bio-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+}
+.bio-card-sub {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0 0 16px;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
+.bio-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+    margin: 0 0 22px;
+}
+
+/* Formulario institucional */
+.bio-setup-form {
+    text-align: left;
+    margin-bottom: 20px;
+}
+.bio-setup-form label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
 .bio-setup-form input {
     width: 100%;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(2, 6, 23, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 12px;
-    padding: 12px 14px;
-    color: #f1f5f9;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.2s, background 0.2s;
-    box-sizing: border-box;
+    padding: 13px 16px;
+    color: #ffffff;
+    font-size: 1.05rem;
+    font-weight: 600;
     letter-spacing: 0.1em;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    font-family: inherit;
 }
-.bio-setup-form input::placeholder { color: rgba(255,255,255,0.25); }
+.bio-setup-form input::placeholder {
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.08em;
+}
 .bio-setup-form input:focus {
     border-color: #3b82f6;
-    background: rgba(59,130,246,0.08);
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
-.bio-setup-btn {
+
+/* Botón institucional */
+.bio-formal-btn {
     width: 100%;
-    background: linear-gradient(135deg, #1d4ed8, #0f766e);
-    color: #fff;
-    border: none;
-    border-radius: 14px;
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
     padding: 14px;
-    font-size: 1rem;
+    font-size: 0.92rem;
     font-weight: 700;
+    letter-spacing: 0.02em;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    transition: opacity 0.2s, transform 0.15s;
-    box-shadow: 0 4px 20px rgba(29,78,216,0.35);
-    margin-bottom: 14px;
+    transition: all 0.15s ease;
+    box-shadow: 0 4px 14px rgba(30, 64, 175, 0.35);
 }
-.bio-setup-btn:hover  { opacity: 0.9; transform: translateY(-1px); }
-.bio-setup-btn:active { transform: scale(0.98); }
+.bio-formal-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+}
+.bio-formal-btn:active {
+    transform: translateY(0);
+}
+.bio-formal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
 
-.bio-setup-note {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.3);
+/* Vista verificada */
+.bio-verified-box {
+    background: rgba(30, 58, 138, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.bio-verified-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #34d399;
+    margin-bottom: 4px;
+}
+.bio-verified-name {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+.bio-verified-cedula {
+    display: block;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+}
+
+.bio-sec-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+.bio-sec-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    margin: 0;
+    transition: all 0.15s ease;
 }
-.bio-setup-note .fa-shield-halved { color: #34d399; }
+.bio-sec-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+.bio-sec-btn.danger {
+    flex: 0 0 42px;
+    color: #f87171;
+}
+.bio-sec-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.bio-status-box {
+    margin-top: 14px;
+    font-size: 0.82rem;
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: left;
+    line-height: 1.4;
+}
