@@ -1,24 +1,28 @@
-const CACHE_NAME = 'sanga-pwa-v4';
-const CACHE_EXTERNAL = 'sanga-external-v4';
+const CACHE_NAME = 'sanga-pwa-v6';
+const CACHE_EXTERNAL = 'sanga-external-v6';
 
-// Assets locales que SIEMPRE se cachean al instalar
+// Assets locales pre-cacheados para funcionamiento offline
 const ASSETS_TO_CACHE = [
+  './',
   './index.html',
-  './styles.css',
-  './app.js',
+  './styles.css?v=6.0',
+  './app.js?v=6.0',
   './manifest.json'
 ];
 
-// ── Instalación: pre-cachear assets locales ──
+// ── Instalación: activar inmediatamente sin esperar ──
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+      return cache.addAll(ASSETS_TO_CACHE).catch(err => {
+        console.warn('[SW] Fallo al pre-cachear:', err);
+      });
+    })
   );
 });
 
-// ── Activación: limpiar cachés antiguas ──
+// ── Activación: borrar cachés antiguas y tomar control de clientes ──
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => {
@@ -30,7 +34,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ── Fetch: estrategia según tipo de recurso ──
+// ── Fetch: Network-First para assets locales (siempre código nuevo), Cache-First para offline ──
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const isLocal = url.origin === self.location.origin;
@@ -45,37 +49,39 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
           return res;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match('./index.html') || caches.match('./'))
     );
     return;
   }
 
-  // Assets locales (CSS, JS) → Cache-first, luego red
+  // Assets locales (CSS, JS, manifest) → NETWORK-FIRST (garantiza la versión más reciente en Vercel)
   if (isLocal) {
     event.respondWith(
-      caches.match(event.request).then(cached => {
-        return cached || fetch(event.request).then(res => {
+      fetch(event.request)
+        .then(res => {
           if (res && res.status === 200) {
             const clone = res.clone();
             caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
           }
           return res;
-        });
-      })
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Recursos externos (CDN, imágenes Cloudinary, fuentes) → Network-first con caché
+  // Recursos externos (CDN, fuentes, imágenes) → Cache-first con actualización en segundo plano
   event.respondWith(
-    fetch(event.request)
-      .then(res => {
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request).then(res => {
         if (res && res.status === 200) {
           const clone = res.clone();
           caches.open(CACHE_EXTERNAL).then(c => c.put(event.request, clone));
         }
         return res;
-      })
-      .catch(() => caches.match(event.request))
+      }).catch(() => null);
+
+      return cached || fetchPromise;
+    })
   );
 });

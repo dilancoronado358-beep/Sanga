@@ -396,35 +396,119 @@ async function doAdminLogin() {
     }
 }
 
-// ── Biometría: abrir modal de configuración ──
+// ── Biometría: abrir modal de configuración / acceso ──
 function bioSetupModal() {
-    const stored = localStorage.getItem('sanga_bio_credential');
-    if (stored) {
-        // Ya hay credencial → autenticar directamente
-        simulateBiometrics();
+    const modal = document.getElementById('modal-bio-setup');
+    if (!modal) {
+        alert('Cargando el sistema biométrico. Intenta de nuevo en unos segundos.');
+        return;
+    }
+
+    // Pre-llenar cédula desde el campo de login si ya la escribió el usuario
+    const loginCed = document.getElementById('login-cedula');
+    const bioCed = document.getElementById('bio-cedula-input');
+    if (loginCed && loginCed.value.trim() && bioCed) {
+        bioCed.value = loginCed.value.trim();
+    }
+
+    // Ocultar cualquier mensaje de error previo
+    const statusMsg = document.getElementById('bio-status-msg');
+    if (statusMsg) statusMsg.style.display = 'none';
+
+    // Verificar si ya hay credencial guardada
+    const storedRaw = localStorage.getItem('sanga_bio_credential');
+    const registeredView = document.getElementById('bio-registered-view');
+    const setupView = document.getElementById('bio-setup-view');
+
+    if (storedRaw) {
+        try {
+            const stored = JSON.parse(storedRaw);
+            if (registeredView && setupView) {
+                const nameEl = document.getElementById('bio-reg-name');
+                const cedEl = document.getElementById('bio-reg-cedula');
+                if (nameEl) nameEl.textContent = stored.nombre ? `${stored.nombre} ${stored.apellido || ''}` : 'Ciudadano';
+                if (cedEl) cedEl.textContent = `Cédula: ${stored.cedula || 'Registrada'}`;
+                registeredView.style.display = 'block';
+                setupView.style.display = 'none';
+            }
+        } catch(e) {
+            if (registeredView && setupView) {
+                registeredView.style.display = 'none';
+                setupView.style.display = 'block';
+            }
+        }
     } else {
-        // Primera vez → mostrar modal para pedir cédula
-        document.getElementById('modal-bio-setup').style.display = 'flex';
-        setTimeout(() => document.getElementById('bio-cedula-input').focus(), 200);
+        if (registeredView && setupView) {
+            registeredView.style.display = 'none';
+            setupView.style.display = 'block';
+        }
+    }
+
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+
+    if (!storedRaw && bioCed) {
+        setTimeout(() => bioCed.focus(), 250);
     }
 }
 
-// ── Biometría: REGISTRAR credencial (primera vez) ──
+function bioCloseModal() {
+    const modal = document.getElementById('modal-bio-setup');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
+}
+
+function bioSwitchToSetup() {
+    const registeredView = document.getElementById('bio-registered-view');
+    const setupView = document.getElementById('bio-setup-view');
+    if (registeredView) registeredView.style.display = 'none';
+    if (setupView) setupView.style.display = 'block';
+    const bioCed = document.getElementById('bio-cedula-input');
+    if (bioCed) {
+        bioCed.value = '';
+        setTimeout(() => bioCed.focus(), 200);
+    }
+}
+
+function bioRemoveCredential() {
+    if (confirm('¿Deseas desvincular tu huella dactilar de este dispositivo?')) {
+        localStorage.removeItem('sanga_bio_credential');
+        const wrap = document.getElementById('bio-quick-btn-wrap');
+        if (wrap) wrap.style.display = 'none';
+        bioSwitchToSetup();
+        showToast('Huella desvinculada del dispositivo.', 'info');
+    }
+}
+
+// ── Biometría: REGISTRAR credencial (primera vez o nueva cédula) ──
 async function bioRegisterCredential() {
-    if (!window.PublicKeyCredential) {
-        showToast('Tu dispositivo no soporta biometría web.', 'err');
-        document.getElementById('modal-bio-setup').style.display = 'none';
+    const statusMsg = document.getElementById('bio-status-msg');
+    const showMsg = (text, isErr = true) => {
+        if (statusMsg) {
+            statusMsg.style.display = 'block';
+            statusMsg.style.background = isErr ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)';
+            statusMsg.style.color = isErr ? '#fca5a5' : '#6ee7b7';
+            statusMsg.style.border = `1px solid ${isErr ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`;
+            statusMsg.innerHTML = `<i class="fa-solid ${isErr ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i> ${text}`;
+        }
+    };
+
+    if (!window.PublicKeyCredential || !navigator.credentials) {
+        showMsg('Tu navegador no soporta WebAuthn o estás navegando en un navegador incrustado. Abre Chrome directamente.');
+        showToast('Navegador sin soporte de biometría.', 'err');
         return;
     }
 
     const ced = document.getElementById('bio-cedula-input').value.trim();
     if (!ced || ced.length !== 10 || isNaN(ced)) {
-        showToast('Ingresa una cédula válida de 10 dígitos.', 'err');
+        showMsg('Por favor ingresa una cédula válida de 10 dígitos.');
         return;
     }
 
-    // 1. Verificar que el ciudadano existe en Supabase
-    showToast('Verificando tu identidad...', 'info');
+    // 1. Verificar existencia en Supabase
+    showToast('Verificando cédula en el Municipio...', 'info');
     let userData = null;
     try {
         const { data, error } = await supabaseClient
@@ -432,25 +516,32 @@ async function bioRegisterCredential() {
             .select('*')
             .eq('cedula', ced)
             .single();
+
         if (error || !data) {
-            showToast('Cédula no encontrada. Regístrate primero.', 'err');
+            showMsg('Cédula no encontrada en el sistema. Debes registrarte primero en el botón "Registro".');
             return;
         }
         userData = data;
     } catch (e) {
-        showToast('Error de conexión al verificar tu cuenta.', 'err');
+        showMsg('Error al conectar con la base de datos municipal.');
         return;
     }
 
-    // 2. Registrar credencial biométrica con WebAuthn
+    // 2. Crear credencial biométrica con WebAuthn
+    const btnActivate = document.getElementById('btn-bio-activate');
+    if (btnActivate) {
+        btnActivate.disabled = true;
+        btnActivate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Esperando huella...';
+    }
+
     try {
         const challenge = window.crypto.getRandomValues(new Uint8Array(32));
-        const userId = new TextEncoder().encode(ced); // Usamos la cédula como userId
+        const userId = new TextEncoder().encode(ced);
 
         const options = {
             challenge,
             rp: {
-                name: 'SanGa · Municipio de Montúfar',
+                name: 'SanGa · GAD Municipal de Montúfar',
                 id: window.location.hostname
             },
             user: {
@@ -463,20 +554,18 @@ async function bioRegisterCredential() {
                 { alg: -257, type: 'public-key' }  // RS256
             ],
             authenticatorSelection: {
-                authenticatorAttachment: 'platform', // Huella / FaceID del propio dispositivo
-                userVerification: 'required',
+                userVerification: 'preferred',
                 residentKey: 'preferred'
             },
             timeout: 60000,
             attestation: 'none'
         };
 
-        showToast('Usa tu huella o Face ID cuando el dispositivo lo pida...', 'info', 8000);
+        showToast('Pon tu huella en el sensor o usa Face ID...', 'info', 8000);
 
         const credential = await navigator.credentials.create({ publicKey: options });
 
         if (credential) {
-            // 3. Guardar el id de la credencial y los datos del usuario localmente
             const bioData = {
                 credentialId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
                 cedula: ced,
@@ -485,49 +574,58 @@ async function bioRegisterCredential() {
             };
             localStorage.setItem('sanga_bio_credential', JSON.stringify(bioData));
 
-            // 4. Mostrar botón de acceso rápido con nombre del usuario
+            // Actualizar vista del modal y botón rápido
             bioShowQuickBtn(userData.nombre);
+            bioCloseModal();
 
-            document.getElementById('modal-bio-setup').style.display = 'none';
-            showToast(`¡Biometría activada, ${userData.nombre}! 🎉 Ahora puedes ingresar con tu huella.`, 'success', 5000);
+            showToast(`¡Biometría activada con éxito, ${userData.nombre}! 🎉 Ahora puedes ingresar con tu huella.`, 'success', 6000);
         }
     } catch (err) {
         console.error('[Bio Register]', err);
         if (err.name === 'NotAllowedError') {
-            showToast('Cancelaste la verificación biométrica.', 'err');
+            showMsg('Cancelaste la verificación biométrica o se agotó el tiempo.');
         } else if (err.name === 'NotSupportedError') {
-            showToast('Este dispositivo no tiene sensor biométrico configurado.', 'err');
+            showMsg('Este dispositivo no tiene sensor biométrico activo. Configura una huella o PIN en los Ajustes de Seguridad de tu teléfono.');
         } else if (err.name === 'InvalidStateError') {
-            showToast('Ya tienes una credencial registrada en este dispositivo.', 'info');
-            bioShowQuickBtn(ced);
+            showToast('Ya tienes una credencial vinculada en este dispositivo.', 'info');
+            bioShowQuickBtn(userData ? userData.nombre : ced);
+            bioCloseModal();
         } else {
-            showToast('No se pudo activar la biometría: ' + err.message, 'err');
+            showMsg('Error biométrico: ' + (err.message || 'Error desconocido'));
+        }
+    } finally {
+        if (btnActivate) {
+            btnActivate.disabled = false;
+            btnActivate.innerHTML = '<i class="fa-solid fa-fingerprint"></i> Activar Biometría';
         }
     }
 }
 
-// ── Biometría: AUTENTICAR (veces siguientes) ──
+// ── Biometría: AUTENTICAR CON HUELLA / FACE ID ──
 async function simulateBiometrics() {
     const storedRaw = localStorage.getItem('sanga_bio_credential');
 
-    // Sin WebAuthn disponible → fallback informativo
     if (!window.PublicKeyCredential || !navigator.credentials) {
         showToast('Tu navegador no soporta autenticación biométrica.', 'err');
         return;
     }
 
-    // Sin credencial guardada → redirigir al setup
     if (!storedRaw) {
         bioSetupModal();
         return;
     }
 
-    const stored = JSON.parse(storedRaw);
+    let stored;
+    try {
+        stored = JSON.parse(storedRaw);
+    } catch(e) {
+        localStorage.removeItem('sanga_bio_credential');
+        bioSetupModal();
+        return;
+    }
 
     try {
         const challenge = window.crypto.getRandomValues(new Uint8Array(32));
-
-        // Reconstruir el rawId desde base64
         const rawIdBytes = Uint8Array.from(atob(stored.credentialId), c => c.charCodeAt(0));
 
         const options = {
@@ -535,19 +633,18 @@ async function simulateBiometrics() {
             rpId: window.location.hostname,
             allowCredentials: [{
                 id: rawIdBytes,
-                type: 'public-key',
-                transports: ['internal']
+                type: 'public-key'
             }],
-            userVerification: 'required',
+            userVerification: 'preferred',
             timeout: 60000
         };
 
-        showToast('Usa tu huella o Face ID para ingresar...', 'info', 8000);
+        showToast('Pon tu huella o usa Face ID para ingresar...', 'info', 8000);
 
         const assertion = await navigator.credentials.get({ publicKey: options });
 
         if (assertion) {
-            // Autenticación exitosa → recuperar datos del usuario desde Supabase
+            bioCloseModal();
             showLoader();
             try {
                 const { data, error } = await supabaseClient
@@ -558,7 +655,7 @@ async function simulateBiometrics() {
 
                 if (error || !data) {
                     hideLoader();
-                    showToast('No se encontraron tus datos. Inicia sesión manualmente.', 'err');
+                    showToast('No se encontraron tus datos en el Municipio. Inicia sesión manualmente.', 'err');
                     return;
                 }
 
@@ -578,23 +675,20 @@ async function simulateBiometrics() {
                     switchView('view-citizen');
                     navToPage('page-dashboard');
                     renderAllModules();
-                }, 1000);
+                }, 800);
             } catch (e) {
                 hideLoader();
-                showToast('Error al recuperar tus datos.', 'err');
+                showToast('Error de conexión al cargar tu cuenta.', 'err');
             }
         }
     } catch (err) {
         console.error('[Bio Auth]', err);
         if (err.name === 'NotAllowedError') {
-            showToast('Cancelaste la verificación biométrica.', 'err');
+            showToast('Verificación cancelada.', 'info');
         } else if (err.name === 'InvalidStateError' || err.name === 'NotFoundError') {
-            // Credencial no encontrada en el dispositivo → limpiar y pedir re-registro
-            localStorage.removeItem('sanga_bio_credential');
-            document.getElementById('bio-quick-btn-wrap').style.display = 'none';
-            showToast('Credencial no encontrada. Regístrala nuevamente.', 'err');
+            showToast('Huella no coincide con la registrada. Intenta de nuevo.', 'err');
         } else {
-            showToast('Error biométrico: ' + err.message, 'err');
+            showToast('Error biométrico: ' + (err.message || 'Desconocido'), 'err');
         }
     }
 }
@@ -2022,14 +2116,7 @@ function loginConNuevaCuenta() {
     if (h1) h1.textContent = `¡Bienvenido, ${DB.usuario.nombre}!`;
 }
 
-// ── REGISTRO DE SERVICE WORKER (PWA) ──
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker registrado correctamente.', reg.scope))
-            .catch(err => console.error('Error al registrar Service Worker:', err));
-    });
-}
+// Service Worker se registra al final de app.js con manejo de actualizaciones
 
 /* =========================================================
    NUEVAS FUNCIONES SMART CITY (TURNOS, MAPA, VOTACIONES)
@@ -2432,18 +2519,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // PWA – INSTALACIÓN EN ANDROID / CHROME
 // ═══════════════════════════════════════════════════
 
-// 1. Registrar Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => {
-                console.log('[SanGa PWA] Service Worker registrado:', reg.scope);
-            })
-            .catch(err => {
-                console.warn('[SanGa PWA] Error al registrar SW:', err);
-            });
-    });
-}
+// Registro principal de Service Worker centralizado al final del archivo
 
 // 2. Capturar el evento beforeinstallprompt de Chrome/Android
 let deferredPrompt = null;
@@ -2573,22 +2649,38 @@ window.addEventListener('DOMContentLoaded', () => {
 let _pwaInstallPrompt = null;
 let _pwaBannerDismissed = false;
 
-// ── 11a. Registrar Service Worker ──
+// ── 11a. Registrar Service Worker con chequeo activo de actualizaciones ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
       .then(reg => {
-        console.log('[SanGa SW] Registrado:', reg.scope);
+        console.log('[SanGa SW] Registrado (v6):', reg.scope);
+        // Forzar revisión inmediata de nueva versión
+        if (typeof reg.update === 'function') {
+          reg.update();
+        }
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SanGa SW] Nueva version disponible');
-            }
-          });
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[SanGa SW] Nueva versión disponible - actualizando controlador');
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          }
         });
       })
       .catch(err => console.error('[SanGa SW] Error al registrar:', err));
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        console.log('[SanGa SW] Controlador actualizado, recargando...');
+        window.location.reload();
+      }
+    });
   });
 }
 
