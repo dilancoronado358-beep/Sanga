@@ -554,8 +554,9 @@ async function bioRegisterCredential() {
                 { alg: -257, type: 'public-key' }  // RS256
             ],
             authenticatorSelection: {
-                userVerification: 'preferred',
-                residentKey: 'preferred'
+                authenticatorAttachment: 'platform', // Obliga al sensor de huella/FaceID del propio teléfono
+                userVerification: 'required',        // Exige huella o rostro del dispositivo
+                residentKey: 'discouraged'           // Evita que se guarde como llave de acceso sincronizada en Google
             },
             timeout: 60000,
             attestation: 'none'
