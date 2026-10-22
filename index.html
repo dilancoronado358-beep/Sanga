@@ -23,7 +23,7 @@
         content="Primera asistente digital del Gobierno Autónomo Descentralizado Municipal de Montúfar. Trámites, pagos, reportes ciudadanos y más.">
     <meta name="application-name" content="SanGa">
 
-    <link rel="stylesheet" href="styles.css?v=9.0">
+    <link rel="stylesheet" href="styles.css?v=10.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -624,11 +624,13 @@
                         <div class="profile-card-wrap">
                             <div class="profile-main-card">
                                 <div class="profile-avatar-wrap">
-                                    <div class="avatar-xl" id="profile-avatar-display">JC</div>
-                                    <button class="avatar-edit-btn"
-                                        onclick="showToast('Función de foto de perfil próximamente', 'info')">
+                                    <div class="avatar-xl" id="profile-avatar-display" onclick="document.getElementById('profile-photo-input').click()" title="Cambiar foto de perfil">JC</div>
+                                    <button type="button" class="avatar-edit-btn"
+                                        onclick="document.getElementById('profile-photo-input').click()"
+                                        title="Cambiar foto de perfil" aria-label="Cambiar foto de perfil">
                                         <i class="fa-solid fa-camera"></i>
                                     </button>
+                                    <input type="file" id="profile-photo-input" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
                                 </div>
                                 <div class="profile-info">
                                     <h2 id="profile-name-display">Juan Ciudadano</h2>
@@ -1572,7 +1574,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=9.0"></script>
+    <script src="app.js?v=10.0"></script>
 </body>
 
 </html>

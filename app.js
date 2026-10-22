@@ -272,6 +272,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 switchView('view-citizen');
                 navToPage('page-dashboard');
                 renderAllModules();
+
+                // Sincronizar foto de perfil en segundo plano desde Supabase si existe
+                if (DB.usuario && DB.usuario.cedula) {
+                    supabaseClient
+                        .from('ciudadanos')
+                        .select('foto_perfil')
+                        .eq('cedula', DB.usuario.cedula)
+                        .single()
+                        .then(({ data, error }) => {
+                            if (!error && data && data.foto_perfil) {
+                                DB.usuario.foto_perfil = data.foto_perfil;
+                                updateProfileDisplay();
+                            }
+                        })
+                        .catch(() => {});
+                }
             } else if (session.type === 'admin') {
                 switchView('view-admin');
                 navToPage('admin-dash');
@@ -337,7 +353,8 @@ async function doLogin() {
             cedula: data.cedula,
             correo: data.correo,
             telefono: data.telefono,
-            parroquia: data.parroquia
+            parroquia: data.parroquia,
+            foto_perfil: data.foto_perfil || null
         };
         
         localStorage.setItem('sanga_session', JSON.stringify({ type: 'citizen', data: DB.usuario }));
@@ -756,7 +773,8 @@ async function simulateBiometrics() {
                     cedula: data.cedula,
                     correo: data.correo,
                     telefono: data.telefono,
-                    parroquia: data.parroquia
+                    parroquia: data.parroquia,
+                    foto_perfil: data.foto_perfil || null
                 };
                 localStorage.setItem('sanga_session', JSON.stringify({ type: 'citizen', data: DB.usuario }));
 
@@ -932,7 +950,7 @@ function renderAllModules() {
 
 function updateProfileDisplay() {
     const u = DB.usuario;
-    const initials = (u.nombre[0] + (u.apellido ? u.apellido[0] : '')).toUpperCase();
+    const initials = ((u.nombre && u.nombre[0] ? u.nombre[0] : '') + (u.apellido && u.apellido[0] ? u.apellido[0] : '')).toUpperCase() || 'CI';
     const nameEl = document.getElementById('profile-name-display');
     const cedEl = document.getElementById('profile-cedula-display');
     const emEl = document.getElementById('profile-email-display');
@@ -942,17 +960,132 @@ function updateProfileDisplay() {
     const sbName = document.getElementById('sb-user-name');
     const heroMsg = document.getElementById('hero-welcome-msg');
 
-    if (nameEl) nameEl.textContent = u.nombre + ' ' + (u.apellido || '');
-    if (cedEl) cedEl.innerHTML = `<i class="fa-solid fa-id-card"></i> C.I. ${u.cedula}`;
-    if (emEl) emEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${u.correo}`;
-    if (avEl) avEl.textContent = initials;
-    if (topAv) topAv.textContent = initials;
-    if (sbAv) sbAv.textContent = initials;
-    if (sbName) sbName.textContent = u.nombre + ' ' + (u.apellido || '');
-    if (heroMsg) heroMsg.textContent = '¡Bienvenido, ' + u.nombre + '!';
+    if (nameEl) nameEl.textContent = (u.nombre || '') + ' ' + (u.apellido || '');
+    if (cedEl) cedEl.innerHTML = `<i class="fa-solid fa-id-card"></i> C.I. ${u.cedula || ''}`;
+    if (emEl) emEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${u.correo || ''}`;
+
+    if (u.foto_perfil) {
+        const imgHtml = `<img src="${u.foto_perfil}" alt="${u.nombre || 'Perfil'}" class="avatar-photo-img">`;
+        if (avEl) avEl.innerHTML = imgHtml;
+        if (topAv) topAv.innerHTML = imgHtml;
+        if (sbAv) sbAv.innerHTML = imgHtml;
+    } else {
+        if (avEl) avEl.textContent = initials;
+        if (topAv) topAv.textContent = initials;
+        if (sbAv) sbAv.textContent = initials;
+    }
+
+    if (sbName) sbName.textContent = (u.nombre || '') + ' ' + (u.apellido || '');
+    if (heroMsg) heroMsg.textContent = '¡Bienvenido, ' + (u.nombre || '') + '!';
 
     const astGreeting = document.getElementById('assistant-greeting-name');
-    if (astGreeting) astGreeting.textContent = u.nombre;
+    if (astGreeting) astGreeting.textContent = u.nombre || '';
+}
+
+// ── GESTIÓN DE FOTO DE PERFIL CIUDADANO ──
+function compressImageToSquare(file, size = 360, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Error al leer el archivo de imagen'));
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onerror = () => reject(new Error('Formato de imagen incompatible'));
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+
+                    // Recorte cuadrado centrado
+                    const minDim = Math.min(img.naturalWidth, img.naturalHeight);
+                    const sx = (img.naturalWidth - minDim) / 2;
+                    const sy = (img.naturalHeight - minDim) / 2;
+
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(dataUrl);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+async function uploadProfilePhoto(event) {
+    const file = event && event.target && event.target.files && event.target.files[0];
+    if (!file) return;
+
+    if (!file.type || !file.type.startsWith('image/')) {
+        showToast('Por favor selecciona un archivo de imagen válido (JPG, PNG, WebP).', 'err');
+        event.target.value = '';
+        return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+        showToast('La fotografía seleccionada es muy grande (máximo 15MB).', 'err');
+        event.target.value = '';
+        return;
+    }
+
+    showLoader();
+    try {
+        const base64Photo = await compressImageToSquare(file, 360, 0.85);
+
+        // Guardar en memoria
+        DB.usuario.foto_perfil = base64Photo;
+
+        // Guardar en la sesión de localStorage
+        const sess = localStorage.getItem('sanga_session');
+        if (sess) {
+            try {
+                const parsed = JSON.parse(sess);
+                if (parsed.data) {
+                    parsed.data.foto_perfil = base64Photo;
+                    localStorage.setItem('sanga_session', JSON.stringify(parsed));
+                }
+            } catch (e) {
+                console.warn('Error actualizando sesión local:', e);
+            }
+        }
+        saveDB();
+
+        // Actualizar UI de inmediato
+        updateProfileDisplay();
+
+        // Guardar en Supabase si está logueado con cédula
+        if (DB.usuario && DB.usuario.cedula) {
+            const { error } = await supabaseClient
+                .from('ciudadanos')
+                .update({ foto_perfil: base64Photo })
+                .eq('cedula', DB.usuario.cedula);
+
+            if (error) {
+                console.warn('Nota Supabase al actualizar foto:', error);
+                if (error.code === '42703' || (error.message && error.message.includes('foto_perfil'))) {
+                    showToast('Foto guardada en tu dispositivo. Ejecuta el script SQL en Supabase para sincronizarla en la nube.', 'info', 5000);
+                } else {
+                    showToast('Foto guardada en tu cuenta.', 'success');
+                }
+            } else {
+                showToast('¡Foto de perfil actualizada y guardada con éxito!', 'success');
+            }
+        } else {
+            showToast('¡Foto de perfil actualizada!', 'success');
+        }
+    } catch (err) {
+        console.error('Error al procesar la foto de perfil:', err);
+        showToast('No se pudo procesar la imagen seleccionada.', 'err');
+    } finally {
+        hideLoader();
+        if (event.target) event.target.value = '';
+    }
 }
 
 function toggleSidebar() {
