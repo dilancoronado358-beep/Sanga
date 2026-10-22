@@ -1981,3 +1981,211 @@ a { color:var(--primary); text-decoration:none; }
     from { transform: translateY(60px); opacity: 0; }
     to   { transform: translateY(0);    opacity: 1; }
 }
+
+/* ════════════════════════════════════════
+   BIOMETRÍA – Botón rápido + Modal setup
+   ════════════════════════════════════════ */
+
+/* ── Botón acceso rápido biométrico ── */
+.bio-quick-login-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    background: linear-gradient(135deg, rgba(30,64,175,0.18), rgba(15,118,110,0.18));
+    border: 1px solid rgba(37,99,235,0.4);
+    border-radius: 16px;
+    padding: 14px 18px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    text-align: left;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.bio-quick-login-btn:hover {
+    background: linear-gradient(135deg, rgba(30,64,175,0.28), rgba(15,118,110,0.28));
+    border-color: rgba(37,99,235,0.7);
+    transform: translateY(-1px);
+}
+.bio-quick-login-btn:active { transform: scale(0.98); }
+
+.bio-quick-login-btn strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+}
+.bio-quick-login-btn span {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+    margin-top: 2px;
+}
+
+.bio-fp-icon {
+    font-size: 2rem;
+    color: #60a5fa;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Anillo de pulso ── */
+.bio-pulse-ring {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid rgba(96,165,250,0.5);
+    animation: bioPulse 2s ease-out infinite;
+    pointer-events: none;
+}
+.bio-pulse-ring.large {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+}
+@keyframes bioPulse {
+    0%   { transform: translateY(-50%) scale(1);   opacity: 0.8; }
+    70%  { transform: translateY(-50%) scale(1.7); opacity: 0; }
+    100% { transform: translateY(-50%) scale(1.7); opacity: 0; }
+}
+
+/* ── Modal setup biometría ── */
+.bio-setup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 12px 12px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: fadeIn 0.2s ease;
+}
+.bio-setup-card {
+    background: #1e293b;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px 24px 16px 16px;
+    padding: 32px 24px 28px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    box-shadow: 0 -12px 50px rgba(0,0,0,0.5);
+    animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    text-align: center;
+}
+.bio-setup-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: rgba(255,255,255,0.08);
+    border: none; border-radius: 50%;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.9rem;
+    transition: background 0.2s, color 0.2s;
+}
+.bio-setup-close:hover { background: rgba(220,38,38,0.2); color: #f87171; }
+
+.bio-setup-icon {
+    position: relative;
+    width: 80px; height: 80px;
+    margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center;
+}
+.bio-setup-icon .fa-fingerprint {
+    font-size: 2.8rem;
+    background: linear-gradient(135deg, #60a5fa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+    z-index: 1;
+}
+.bio-setup-card h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0 0 8px;
+}
+.bio-setup-card > p {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.55);
+    margin: 0 0 22px;
+    line-height: 1.5;
+}
+.bio-setup-form {
+    text-align: left;
+    margin-bottom: 18px;
+}
+.bio-setup-form label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.bio-setup-form input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: #f1f5f9;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+    letter-spacing: 0.1em;
+}
+.bio-setup-form input::placeholder { color: rgba(255,255,255,0.25); }
+.bio-setup-form input:focus {
+    border-color: #3b82f6;
+    background: rgba(59,130,246,0.08);
+}
+.bio-setup-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #1d4ed8, #0f766e);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: 0 4px 20px rgba(29,78,216,0.35);
+    margin-bottom: 14px;
+}
+.bio-setup-btn:hover  { opacity: 0.9; transform: translateY(-1px); }
+.bio-setup-btn:active { transform: scale(0.98); }
+
+.bio-setup-note {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 0;
+}
+.bio-setup-note .fa-shield-halved { color: #34d399; }

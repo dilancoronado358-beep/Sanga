@@ -83,8 +83,20 @@
                     <h1 class="glc-title">Iniciar Sesión</h1>
                     <p class="glc-subtitle">Acceso ciudadano al GAD Municipal de Montúfar. Tu cantón a un clic de distancia.</p>
                     
+                    <!-- Botón biometría principal -->
+                    <div id="bio-quick-btn-wrap" style="display:none; margin-bottom: 16px;">
+                        <button type="button" id="bio-quick-btn" class="bio-quick-login-btn" onclick="simulateBiometrics()">
+                            <span class="bio-pulse-ring"></span>
+                            <i class="fa-solid fa-fingerprint bio-fp-icon"></i>
+                            <div>
+                                <strong id="bio-quick-name">Acceso biométrico</strong>
+                                <span>Toca para ingresar con huella / Face ID</span>
+                            </div>
+                        </button>
+                    </div>
+
                     <div class="glc-options">
-                        <button type="button" class="glc-opt-btn" onclick="simulateBiometrics()"><i class="fa-solid fa-fingerprint"></i> Biometría</button>
+                        <button type="button" class="glc-opt-btn" id="btn-bio-register" onclick="bioSetupModal()"><i class="fa-solid fa-fingerprint"></i> Biometría</button>
                         <button type="button" class="glc-opt-btn" onclick="openModal('modal-registro')"><i class="fa-solid fa-user-plus"></i> Registro</button>
                     </div>
                     
@@ -107,6 +119,29 @@
                     
                     <div style="text-align: center; margin-top: 24px; position: relative; z-index: 10;">
                         <button type="button" class="btn btn-ghost" style="color: rgba(255,255,255,0.3); font-size: 0.75rem;" onclick="openModal('modal-admin-login')">Soy Funcionario Municipal</button>
+                    </div>
+
+                    <!-- Modal: Configurar Biometría (primera vez) -->
+                    <div id="modal-bio-setup" class="bio-setup-overlay" style="display:none;" role="dialog" aria-label="Configurar acceso biométrico">
+                        <div class="bio-setup-card">
+                            <button class="bio-setup-close" onclick="document.getElementById('modal-bio-setup').style.display='none'" aria-label="Cerrar">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div class="bio-setup-icon">
+                                <span class="bio-pulse-ring large"></span>
+                                <i class="fa-solid fa-fingerprint"></i>
+                            </div>
+                            <h3>Acceso Biométrico</h3>
+                            <p>Vincula tu huella dactilar o Face ID a tu cuenta para ingresar sin contraseña.</p>
+                            <div class="bio-setup-form">
+                                <label>Tu Cédula de Identidad</label>
+                                <input type="text" id="bio-cedula-input" placeholder="Ej: 0401234567" maxlength="10" inputmode="numeric">
+                            </div>
+                            <button class="bio-setup-btn" onclick="bioRegisterCredential()">
+                                <i class="fa-solid fa-fingerprint"></i> Activar Biometría
+                            </button>
+                            <p class="bio-setup-note"><i class="fa-solid fa-shield-halved"></i> Tu huella nunca sale del dispositivo. Solo se almacena localmente.</p>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -396,63 +396,227 @@ async function doAdminLogin() {
     }
 }
 
-async function simulateBiometrics() {
-    // Si no estamos en un entorno seguro (HTTPS/localhost) o no hay biometría, usamos la simulación
-    if (!window.PublicKeyCredential || !navigator.credentials) {
-        showToast('Entorno no seguro. Simulando biometría...', 'info');
-        showLoader();
-        setTimeout(() => {
-            hideLoader();
-            showToast('¡Identidad verificada! ✓');
-            switchView('view-citizen');
-            navToPage('page-dashboard');
-            renderAllModules();
-        }, 1500);
+// ── Biometría: abrir modal de configuración ──
+function bioSetupModal() {
+    const stored = localStorage.getItem('sanga_bio_credential');
+    if (stored) {
+        // Ya hay credencial → autenticar directamente
+        simulateBiometrics();
+    } else {
+        // Primera vez → mostrar modal para pedir cédula
+        document.getElementById('modal-bio-setup').style.display = 'flex';
+        setTimeout(() => document.getElementById('bio-cedula-input').focus(), 200);
+    }
+}
+
+// ── Biometría: REGISTRAR credencial (primera vez) ──
+async function bioRegisterCredential() {
+    if (!window.PublicKeyCredential) {
+        showToast('Tu dispositivo no soporta biometría web.', 'err');
+        document.getElementById('modal-bio-setup').style.display = 'none';
         return;
     }
 
+    const ced = document.getElementById('bio-cedula-input').value.trim();
+    if (!ced || ced.length !== 10 || isNaN(ced)) {
+        showToast('Ingresa una cédula válida de 10 dígitos.', 'err');
+        return;
+    }
+
+    // 1. Verificar que el ciudadano existe en Supabase
+    showToast('Verificando tu identidad...', 'info');
+    let userData = null;
     try {
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
-        const userId = new Uint8Array(16);
-        window.crypto.getRandomValues(userId);
+        const { data, error } = await supabaseClient
+            .from('ciudadanos')
+            .select('*')
+            .eq('cedula', ced)
+            .single();
+        if (error || !data) {
+            showToast('Cédula no encontrada. Regístrate primero.', 'err');
+            return;
+        }
+        userData = data;
+    } catch (e) {
+        showToast('Error de conexión al verificar tu cuenta.', 'err');
+        return;
+    }
+
+    // 2. Registrar credencial biométrica con WebAuthn
+    try {
+        const challenge = window.crypto.getRandomValues(new Uint8Array(32));
+        const userId = new TextEncoder().encode(ced); // Usamos la cédula como userId
 
         const options = {
-            challenge: challenge,
-            rp: { name: "SanGa Municipio", id: window.location.hostname || "localhost" },
+            challenge,
+            rp: {
+                name: 'SanGa · Municipio de Montúfar',
+                id: window.location.hostname
+            },
             user: {
                 id: userId,
-                name: "ciudadano@montufar.gob.ec",
-                displayName: "Ciudadano"
+                name: ced,
+                displayName: `${userData.nombre} ${userData.apellido}`
             },
-            pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+            pubKeyCredParams: [
+                { alg: -7,   type: 'public-key' }, // ES256
+                { alg: -257, type: 'public-key' }  // RS256
+            ],
             authenticatorSelection: {
-                authenticatorAttachment: "platform", // Obliga a usar biometría local (Huella/Rostro)
-                userVerification: "required"
+                authenticatorAttachment: 'platform', // Huella / FaceID del propio dispositivo
+                userVerification: 'required',
+                residentKey: 'preferred'
             },
             timeout: 60000,
-            attestation: "none"
+            attestation: 'none'
         };
 
-        showToast('Activa el sensor biométrico...', 'info');
+        showToast('Usa tu huella o Face ID cuando el dispositivo lo pida...', 'info', 8000);
 
-        // Esto invoca el prompt nativo de FaceID, TouchID, Windows Hello, etc.
         const credential = await navigator.credentials.create({ publicKey: options });
 
         if (credential) {
-            showToast('¡Identidad verificada! ✓');
-            switchView('view-citizen');
-            renderAllModules();
+            // 3. Guardar el id de la credencial y los datos del usuario localmente
+            const bioData = {
+                credentialId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+                cedula: ced,
+                nombre: userData.nombre,
+                apellido: userData.apellido
+            };
+            localStorage.setItem('sanga_bio_credential', JSON.stringify(bioData));
+
+            // 4. Mostrar botón de acceso rápido con nombre del usuario
+            bioShowQuickBtn(userData.nombre);
+
+            document.getElementById('modal-bio-setup').style.display = 'none';
+            showToast(`¡Biometría activada, ${userData.nombre}! 🎉 Ahora puedes ingresar con tu huella.`, 'success', 5000);
         }
     } catch (err) {
-        console.error("Biometría error:", err);
+        console.error('[Bio Register]', err);
         if (err.name === 'NotAllowedError') {
-            showToast('Autenticación cancelada.', 'error');
+            showToast('Cancelaste la verificación biométrica.', 'err');
+        } else if (err.name === 'NotSupportedError') {
+            showToast('Este dispositivo no tiene sensor biométrico configurado.', 'err');
+        } else if (err.name === 'InvalidStateError') {
+            showToast('Ya tienes una credencial registrada en este dispositivo.', 'info');
+            bioShowQuickBtn(ced);
         } else {
-            showToast('Dispositivo sin biometría o sin configurar.', 'error');
+            showToast('No se pudo activar la biometría: ' + err.message, 'err');
         }
     }
 }
+
+// ── Biometría: AUTENTICAR (veces siguientes) ──
+async function simulateBiometrics() {
+    const storedRaw = localStorage.getItem('sanga_bio_credential');
+
+    // Sin WebAuthn disponible → fallback informativo
+    if (!window.PublicKeyCredential || !navigator.credentials) {
+        showToast('Tu navegador no soporta autenticación biométrica.', 'err');
+        return;
+    }
+
+    // Sin credencial guardada → redirigir al setup
+    if (!storedRaw) {
+        bioSetupModal();
+        return;
+    }
+
+    const stored = JSON.parse(storedRaw);
+
+    try {
+        const challenge = window.crypto.getRandomValues(new Uint8Array(32));
+
+        // Reconstruir el rawId desde base64
+        const rawIdBytes = Uint8Array.from(atob(stored.credentialId), c => c.charCodeAt(0));
+
+        const options = {
+            challenge,
+            rpId: window.location.hostname,
+            allowCredentials: [{
+                id: rawIdBytes,
+                type: 'public-key',
+                transports: ['internal']
+            }],
+            userVerification: 'required',
+            timeout: 60000
+        };
+
+        showToast('Usa tu huella o Face ID para ingresar...', 'info', 8000);
+
+        const assertion = await navigator.credentials.get({ publicKey: options });
+
+        if (assertion) {
+            // Autenticación exitosa → recuperar datos del usuario desde Supabase
+            showLoader();
+            try {
+                const { data, error } = await supabaseClient
+                    .from('ciudadanos')
+                    .select('*')
+                    .eq('cedula', stored.cedula)
+                    .single();
+
+                if (error || !data) {
+                    hideLoader();
+                    showToast('No se encontraron tus datos. Inicia sesión manualmente.', 'err');
+                    return;
+                }
+
+                DB.usuario = {
+                    nombre: data.nombre,
+                    apellido: data.apellido,
+                    cedula: data.cedula,
+                    correo: data.correo,
+                    telefono: data.telefono,
+                    parroquia: data.parroquia
+                };
+                localStorage.setItem('sanga_session', JSON.stringify({ type: 'citizen', data: DB.usuario }));
+
+                setTimeout(() => {
+                    hideLoader();
+                    showToast(`¡Bienvenido, ${data.nombre}! ✓ Acceso biométrico verificado.`, 'success', 4000);
+                    switchView('view-citizen');
+                    navToPage('page-dashboard');
+                    renderAllModules();
+                }, 1000);
+            } catch (e) {
+                hideLoader();
+                showToast('Error al recuperar tus datos.', 'err');
+            }
+        }
+    } catch (err) {
+        console.error('[Bio Auth]', err);
+        if (err.name === 'NotAllowedError') {
+            showToast('Cancelaste la verificación biométrica.', 'err');
+        } else if (err.name === 'InvalidStateError' || err.name === 'NotFoundError') {
+            // Credencial no encontrada en el dispositivo → limpiar y pedir re-registro
+            localStorage.removeItem('sanga_bio_credential');
+            document.getElementById('bio-quick-btn-wrap').style.display = 'none';
+            showToast('Credencial no encontrada. Regístrala nuevamente.', 'err');
+        } else {
+            showToast('Error biométrico: ' + err.message, 'err');
+        }
+    }
+}
+
+// ── Mostrar botón de acceso rápido con nombre ──
+function bioShowQuickBtn(nombre) {
+    const wrap = document.getElementById('bio-quick-btn-wrap');
+    const nameEl = document.getElementById('bio-quick-name');
+    if (wrap) wrap.style.display = 'block';
+    if (nameEl) nameEl.textContent = `Hola, ${nombre}`;
+}
+
+// ── Al cargar: mostrar botón si hay credencial guardada ──
+(function bioInit() {
+    const stored = localStorage.getItem('sanga_bio_credential');
+    if (stored) {
+        try {
+            const { nombre } = JSON.parse(stored);
+            bioShowQuickBtn(nombre || 'Ciudadano');
+        } catch(e) {}
+    }
+})();
 
 function switchView(id) {
     document.querySelectorAll('.app-view').forEach(v => { v.classList.remove('active'); });
