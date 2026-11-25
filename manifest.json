@@ -15,19 +15,19 @@
   "categories": ["government", "productivity", "utilities"],
   "icons": [
     {
-      "src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png",
+      "src": "https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png",
+      "src": "https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png",
+      "src": "https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -35,14 +35,14 @@
   ],
   "screenshots": [
     {
-      "src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1790886597/Parque_de_San_Gabriel__Carchi__Ecuador_iygv1y.jpg",
+      "src": "https://res.cloudinary.com/jellvthl/image/upload/v1794290005/san_gabriel.jpg",
       "sizes": "1280x720",
       "type": "image/jpeg",
       "form_factor": "wide",
       "label": "Panel principal de SanGa"
     },
     {
-      "src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1790886597/Parque_de_San_Gabriel__Carchi__Ecuador_iygv1y.jpg",
+      "src": "https://res.cloudinary.com/jellvthl/image/upload/v1794290005/san_gabriel.jpg",
       "sizes": "720x1280",
       "type": "image/jpeg",
       "form_factor": "narrow",
@@ -55,21 +55,21 @@
       "short_name": "Trámites",
       "description": "Ver y gestionar mis trámites municipales",
       "url": "./index.html?goto=tramites&source=pwa",
-      "icons": [{"src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png", "sizes": "96x96"}]
+      "icons": [{"src": "https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png", "sizes": "96x96"}]
     },
     {
       "name": "Pagar en Línea",
       "short_name": "Pagos",
       "description": "Realizar pagos de servicios municipales",
       "url": "./index.html?goto=pagos&source=pwa",
-      "icons": [{"src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png", "sizes": "96x96"}]
+      "icons": [{"src": "https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png", "sizes": "96x96"}]
     },
     {
       "name": "Hacer un Reporte",
       "short_name": "Reportes",
       "description": "Reportar problemas en el cantón",
       "url": "./index.html?goto=reportes&source=pwa",
-      "icons": [{"src": "https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png", "sizes": "96x96"}]
+      "icons": [{"src": "https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png", "sizes": "96x96"}]
     }
   ]
 }

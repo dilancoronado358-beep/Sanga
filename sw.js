@@ -1,12 +1,12 @@
-const CACHE_NAME = 'sanga-pwa-v10';
-const CACHE_EXTERNAL = 'sanga-external-v10';
+const CACHE_NAME = 'sanga-pwa-v14';
+const CACHE_EXTERNAL = 'sanga-external-v14';
 
 // Assets locales pre-cacheados para funcionamiento offline
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './styles.css?v=10.0',
-  './app.js?v=10.0',
+  './styles.css?v=14.0',
+  './app.js?v=14.0',
   './manifest.json'
 ];
 
@@ -28,7 +28,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys => {
       return Promise.all(
         keys.filter(k => k !== CACHE_NAME && k !== CACHE_EXTERNAL)
-            .map(k => caches.delete(k))
+          .map(k => caches.delete(k))
       );
     }).then(() => self.clients.claim())
   );

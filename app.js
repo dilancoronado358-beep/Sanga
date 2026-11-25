@@ -413,6 +413,21 @@ async function doAdminLogin() {
     }
 }
 
+// ── Biometría: mostrar/ocultar contraseña en modal ──
+function toggleBioPassVisibility(forceHide = false) {
+    const passInput = document.getElementById('bio-pass-input');
+    const eyeBtn = document.getElementById('bio-pass-eye');
+    if (!passInput) return;
+    const icon = eyeBtn ? eyeBtn.querySelector('i') : null;
+    if (forceHide || passInput.type === 'text') {
+        passInput.type = 'password';
+        if (icon) icon.className = 'fa-regular fa-eye-slash';
+    } else {
+        passInput.type = 'text';
+        if (icon) icon.className = 'fa-regular fa-eye';
+    }
+}
+
 // ── Biometría: abrir modal de configuración / acceso ──
 function bioSetupModal() {
     const modal = document.getElementById('modal-bio-setup');
@@ -424,15 +439,20 @@ function bioSetupModal() {
     // Pre-llenar cédula desde el campo de login si ya la escribió el usuario
     const loginCed = document.getElementById('login-cedula');
     const bioCed = document.getElementById('bio-cedula-input');
+    const bioPass = document.getElementById('bio-pass-input');
     if (loginCed && loginCed.value.trim() && bioCed) {
         bioCed.value = loginCed.value.trim();
+    }
+    if (bioPass) {
+        bioPass.value = '';
+        toggleBioPassVisibility(true);
     }
 
     // Ocultar cualquier mensaje de error previo
     const statusMsg = document.getElementById('bio-status-msg');
     if (statusMsg) statusMsg.style.display = 'none';
 
-    // Verificar si ya hay credencial guardada
+    // Verificar si ya hay credencial guardada en este dispositivo
     const storedRaw = localStorage.getItem('sanga_bio_credential');
     const registeredView = document.getElementById('bio-registered-view');
     const setupView = document.getElementById('bio-setup-view');
@@ -464,39 +484,12 @@ function bioSetupModal() {
     modal.style.display = 'flex';
     modal.classList.add('active');
 
-    // Si no hay credencial en localStorage, pero el usuario ya escribió su cédula, consultar Supabase
-    if (!storedRaw && loginCed && loginCed.value.trim().length === 10) {
-        const cedQuery = loginCed.value.trim();
-        supabaseClient
-            .from('ciudadanos')
-            .select('*')
-            .eq('cedula', cedQuery)
-            .single()
-            .then(({ data }) => {
-                if (data && data.bio_credential_id) {
-                    const bioData = {
-                        credentialId: data.bio_credential_id,
-                        cedula: data.cedula,
-                        nombre: data.nombre,
-                        apellido: data.apellido
-                    };
-                    localStorage.setItem('sanga_bio_credential', JSON.stringify(bioData));
-                    bioShowQuickBtn(data.nombre);
-                    if (registeredView && setupView) {
-                        const nameEl = document.getElementById('bio-reg-name');
-                        const cedEl = document.getElementById('bio-reg-cedula');
-                        if (nameEl) nameEl.textContent = `${data.nombre} ${data.apellido || ''}`;
-                        if (cedEl) cedEl.textContent = `C.I. ${data.cedula}`;
-                        registeredView.style.display = 'block';
-                        setupView.style.display = 'none';
-                    }
-                }
-            })
-            .catch(() => {});
-    }
-
-    if (!storedRaw && bioCed) {
-        setTimeout(() => bioCed.focus(), 250);
+    if (!storedRaw) {
+        if (bioCed && bioCed.value.trim().length === 10 && bioPass) {
+            setTimeout(() => bioPass.focus(), 250);
+        } else if (bioCed) {
+            setTimeout(() => bioCed.focus(), 250);
+        }
     }
 }
 
@@ -506,14 +499,26 @@ function bioCloseModal() {
         modal.style.display = 'none';
         modal.classList.remove('active');
     }
+    const bioPass = document.getElementById('bio-pass-input');
+    if (bioPass) {
+        bioPass.value = '';
+        toggleBioPassVisibility(true);
+    }
 }
 
 function bioSwitchToSetup() {
     const registeredView = document.getElementById('bio-registered-view');
     const setupView = document.getElementById('bio-setup-view');
+    const statusMsg = document.getElementById('bio-status-msg');
     if (registeredView) registeredView.style.display = 'none';
     if (setupView) setupView.style.display = 'block';
+    if (statusMsg) statusMsg.style.display = 'none';
     const bioCed = document.getElementById('bio-cedula-input');
+    const bioPass = document.getElementById('bio-pass-input');
+    if (bioPass) {
+        bioPass.value = '';
+        toggleBioPassVisibility(true);
+    }
     if (bioCed) {
         bioCed.value = '';
         setTimeout(() => bioCed.focus(), 200);
@@ -550,6 +555,8 @@ async function bioRemoveCredential() {
 // ── Biometría: REGISTRAR credencial (primera vez o nueva cédula) ──
 async function bioRegisterCredential() {
     const statusMsg = document.getElementById('bio-status-msg');
+    if (statusMsg) statusMsg.style.display = 'none';
+
     const showMsg = (text, isErr = true) => {
         if (statusMsg) {
             statusMsg.style.display = 'block';
@@ -567,35 +574,57 @@ async function bioRegisterCredential() {
     }
 
     const ced = document.getElementById('bio-cedula-input').value.trim();
+    const passInput = document.getElementById('bio-pass-input');
+    const pass = (passInput ? passInput.value : '').trim();
+
     if (!ced || ced.length !== 10 || isNaN(ced)) {
         showMsg('Por favor ingresa una cédula válida de 10 dígitos.');
         return;
     }
 
-    // 1. Verificar existencia en Supabase
-    showToast('Verificando cédula en el Municipio...', 'info');
+    if (!pass) {
+        showMsg('Por favor ingresa tu contraseña para confirmar tu identidad.');
+        if (passInput) passInput.focus();
+        return;
+    }
+
+    const btnActivate = document.getElementById('btn-bio-activate');
+    if (btnActivate) {
+        btnActivate.disabled = true;
+        btnActivate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verificando credenciales...';
+    }
+
+    // 1. Verificar cédula Y contraseña en Supabase
+    showToast('Verificando credenciales en el Municipio...', 'info');
     let userData = null;
     try {
         const { data, error } = await supabaseClient
             .from('ciudadanos')
             .select('*')
             .eq('cedula', ced)
+            .eq('contrasena', pass)
             .single();
 
         if (error || !data) {
-            showMsg('Cédula no encontrada en el sistema. Debes registrarte primero en el botón "Registro".');
+            showMsg('Cédula no registrada o contraseña incorrecta. Verifica tus credenciales.');
+            if (btnActivate) {
+                btnActivate.disabled = false;
+                btnActivate.innerHTML = '<i class="fa-solid fa-fingerprint"></i> Vincular Identidad Biométrica';
+            }
             return;
         }
         userData = data;
     } catch (e) {
         showMsg('Error al conectar con la base de datos municipal.');
+        if (btnActivate) {
+            btnActivate.disabled = false;
+            btnActivate.innerHTML = '<i class="fa-solid fa-fingerprint"></i> Vincular Identidad Biométrica';
+        }
         return;
     }
 
     // 2. Crear credencial biométrica con WebAuthn
-    const btnActivate = document.getElementById('btn-bio-activate');
     if (btnActivate) {
-        btnActivate.disabled = true;
         btnActivate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Esperando huella...';
     }
 
@@ -678,7 +707,7 @@ async function bioRegisterCredential() {
     } finally {
         if (btnActivate) {
             btnActivate.disabled = false;
-            btnActivate.innerHTML = '<i class="fa-solid fa-fingerprint"></i> Activar Biometría';
+            btnActivate.innerHTML = '<i class="fa-solid fa-fingerprint"></i> Vincular Identidad Biométrica';
         }
     }
 }
@@ -698,32 +727,6 @@ async function simulateBiometrics() {
             stored = JSON.parse(storedRaw);
         } catch(e) {
             localStorage.removeItem('sanga_bio_credential');
-        }
-    }
-
-    // Si no está en memoria local, buscar credencial en Supabase por cédula
-    if (!stored || !stored.credentialId) {
-        const candidateCed = (document.getElementById('login-cedula')?.value || document.getElementById('bio-cedula-input')?.value || '').trim();
-        if (candidateCed && candidateCed.length === 10) {
-            showToast('Verificando credencial en el Municipio...', 'info');
-            try {
-                const { data, error } = await supabaseClient
-                    .from('ciudadanos')
-                    .select('*')
-                    .eq('cedula', candidateCed)
-                    .single();
-
-                if (data && data.bio_credential_id) {
-                    stored = {
-                        credentialId: data.bio_credential_id,
-                        cedula: data.cedula,
-                        nombre: data.nombre,
-                        apellido: data.apellido
-                    };
-                    localStorage.setItem('sanga_bio_credential', JSON.stringify(stored));
-                    bioShowQuickBtn(data.nombre);
-                }
-            } catch (e) {}
         }
     }
 
@@ -1987,7 +1990,7 @@ function generarRecibo(method) {
         <div class="premium-receipt">
             <div class="pr-header">
                 <div class="pr-brand">
-                    <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" alt="Logo">
+                    <img src="https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png" alt="Logo">
                     <div>
                         <h4>GAD Municipal de Montúfar</h4>
                         <span>RUC: 0460000120001</span>
@@ -2774,7 +2777,7 @@ function showInstallBanner() {
         banner.id = 'pwa-install-banner';
         banner.innerHTML = `
             <div class="pwa-banner-inner">
-                <img src="https://res.cloudinary.com/dtmqftcsr/image/upload/v1785797907/logo_municipio_jokfdn.png" alt="SanGa" class="pwa-banner-icon">
+                <img src="https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png" alt="SanGa" class="pwa-banner-icon">
                 <div class="pwa-banner-text">
                     <strong>Instalar SanGa</strong>
                     <span>Agrega el Municipio a tu pantalla de inicio</span>
