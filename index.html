@@ -23,7 +23,7 @@
         content="Primera asistente digital del Gobierno Autónomo Descentralizado Municipal de Montúfar. Trámites, pagos, reportes ciudadanos y más.">
     <meta name="application-name" content="SanGa">
 
-    <link rel="stylesheet" href="styles.css?v=14.0">
+    <link rel="stylesheet" href="styles.css?v=18.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -38,11 +38,13 @@
 <body>
     <div id="global-loader">
         <div class="loader-content">
-            <img src="https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png" alt="Logo SanGa" class="loader-logo">
+            <div class="loader-emblem">
+                <img src="https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png" alt="Logo SanGa" class="loader-logo">
+            </div>
             <div class="spinner-rings">
                 <div></div><div></div><div></div>
             </div>
-            <p class="loader-text">Accediendo al Sistema...</p>
+            <p class="loader-text">Verificando acceso al sistema...</p>
         </div>
     </div>
     <div id="app-root">
@@ -51,37 +53,18 @@
         <!-- ============================================================
          VISTA 1: LOGIN
     ============================================================ -->
-        <div id="view-login" class="app-view active" style="background: linear-gradient(rgba(9, 9, 12, 0.6), rgba(9, 9, 12, 0.8)), url('https://res.cloudinary.com/jellvthl/image/upload/v1794290005/san_gabriel.jpg') center/cover no-repeat; overflow: hidden; position: relative; z-index: 1; align-items: center; justify-content: center;">
-            <!-- Decoraciones de fondo (líneas sci-fi, luces) -->
-            <div style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: -1; overflow: hidden;">
-                <!-- Fondo con patrón de líneas -->
-                <div style="position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);"></div>
-                <!-- Luces de colores -->
-                <div style="position: absolute; bottom: -20%; left: 10%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(0,238,255,0.12) 0%, transparent 60%); filter: blur(50px);"></div>
-                <div style="position: absolute; bottom: -20%; right: 10%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(255,0,85,0.12) 0%, transparent 60%); filter: blur(50px);"></div>
-                
-                <!-- Formas geométricas -->
-                <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 300px solid transparent; border-right: 300px solid transparent; border-bottom: 200px solid rgba(255,255,255,0.015);"></div>
-                <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 200px solid transparent; border-right: 200px solid transparent; border-bottom: 150px solid rgba(255,255,255,0.02);"></div>
-            </div>
-
+        <div id="view-login" class="app-view active" style="background: linear-gradient(rgba(10, 10, 12, 0.68), rgba(10, 10, 12, 0.85)), url('https://res.cloudinary.com/jellvthl/image/upload/v1794290005/san_gabriel.jpg') center/cover no-repeat; overflow: hidden; position: relative; z-index: 1; align-items: center; justify-content: center;">
             <div class="glass-login-wrap">
                 <div class="glass-login-card">
-                    <!-- Side tabs decorativas -->
-                    <div class="glc-decor left-tabs">
-                        <span></span><span></span><span></span><span></span>
-                    </div>
-                    <!-- Bottom right decorativas -->
-                    <div class="glc-decor bottom-tabs">
-                        <span></span><span></span><span></span>
-                    </div>
-                    
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <img src="https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png" alt="Logo SanGa" style="height: 100px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));">
+                    <div class="glc-brand-header">
+                        <div class="glc-logo-box">
+                            <img src="https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png" alt="Logo SanGa">
+                        </div>
+                        <span class="glc-inst-eyebrow">GAD Municipal de Montúfar</span>
                     </div>
                     
                     <h1 class="glc-title">Iniciar Sesión</h1>
-                    <p class="glc-subtitle">Acceso ciudadano al GAD Municipal de Montúfar. Tu cantón a un clic de distancia.</p>
+                    <p class="glc-subtitle">Portal oficial de trámites y servicios ciudadanos en línea.</p>
                     
                     <!-- Botón biometría principal -->
                     <div id="bio-quick-btn-wrap" style="display:none; margin-bottom: 16px;">
@@ -90,7 +73,7 @@
                             <i class="fa-solid fa-fingerprint bio-fp-icon"></i>
                             <div>
                                 <strong id="bio-quick-name">Acceso biométrico</strong>
-                                <span>Toca para ingresar con huella / Face ID</span>
+                                <span>Ingresar con huella digital o reconocimiento facial</span>
                             </div>
                         </button>
                     </div>
@@ -104,8 +87,8 @@
                     
                     <form id="form-login" class="glc-form">
                         <div class="glc-group">
-                            <label>Cédula</label>
-                            <input type="text" id="login-cedula" placeholder="Ingrese su cédula" maxlength="10">
+                            <label>Cédula de Identidad</label>
+                            <input type="text" id="login-cedula" placeholder="Ingrese su número de cédula" maxlength="10">
                         </div>
                         <div class="glc-group">
                             <label>Contraseña</label>
@@ -114,11 +97,11 @@
                                 <button type="button" class="glc-eye-btn" onclick="const p = document.getElementById('login-pass'); const i = this.querySelector('i'); if(p.type==='password'){p.type='text'; i.className='fa-regular fa-eye';}else{p.type='password'; i.className='fa-regular fa-eye-slash';}"><i class="fa-regular fa-eye-slash"></i></button>
                             </div>
                         </div>
-                        <button type="submit" class="glc-submit-btn">Ingresar</button>
+                        <button type="submit" class="glc-submit-btn">Ingresar al Portal</button>
                     </form>
                     
-                    <div style="text-align: center; margin-top: 24px; position: relative; z-index: 10;">
-                        <button type="button" class="btn btn-ghost" style="color: rgba(255,255,255,0.3); font-size: 0.75rem;" onclick="openModal('modal-admin-login')">Soy Funcionario Municipal</button>
+                    <div class="glc-footer-action">
+                        <button type="button" class="glc-staff-link" onclick="openModal('modal-admin-login')"><i class="fa-solid fa-building-shield"></i> Acceso para Funcionarios Municipales</button>
                     </div>
                 </div>
             </div>
@@ -136,12 +119,11 @@
                     <div class="sh-brand">
                         <div class="sb-logo-wrap">
                             <img src="https://res.cloudinary.com/jellvthl/image/upload/v1795616803/LOGO_SANGA.png"
-                                alt="Logo">
-                            <span class="sb-online-dot"></span>
+                                alt="Logo SanGa">
                         </div>
                         <div class="sb-brand-text">
                             <span class="brand-name">SANGA</span>
-                            <span class="brand-sub">Montúfar · Digital</span>
+                            <span class="brand-sub">GAD Municipal de Montúfar</span>
                         </div>
                     </div>
 
@@ -177,8 +159,8 @@
                         </button>
 
                         <button class="nav-btn nav-ai" data-page="page-chat">
-                            <span class="nav-icon-wrap"><i class="fa-solid fa-robot"></i></span>
-                            <span class="nav-text">SanGa IA</span>
+                            <span class="nav-icon-wrap"><i class="fa-solid fa-headset"></i></span>
+                            <span class="nav-text">Asistente SanGa</span>
                             <span class="nav-ai-badge">IA</span>
                         </button>
 
@@ -235,22 +217,22 @@
                         <div class="hero-banner">
                             <div class="hero-text">
                                 <p class="hero-date" id="hero-date"></p>
-                                <h1 id="hero-welcome-msg">¡Bienvenido!</h1>
-                                <p class="hero-sub">GAD Municipal de Montúfar · San Gabriel</p>
-                                <p class="hero-slogan">El Municipio no espera que vayas. Llega hasta ti.</p>
+                                <h1 id="hero-welcome-msg">Bienvenido</h1>
+                                <p class="hero-sub">Gobierno Autónomo Descentralizado Municipal de Montúfar · San Gabriel</p>
+                                <p class="hero-slogan">Portal oficial de trámites, pagos y atención ciudadana.</p>
                                 <div class="hero-btns">
                                     <button class="btn btn-white" onclick="navToPage('page-chat')"><i
-                                            class="fa-solid fa-robot"></i> Hablar con SanGa</button>
+                                            class="fa-solid fa-headset"></i> Asistente SanGa</button>
                                     <button class="btn btn-outline-white" onclick="navToPage('page-pagos')"><i
-                                            class="fa-solid fa-wallet"></i> Mis Pagos</button>
+                                            class="fa-solid fa-file-invoice-dollar"></i> Mis Pagos</button>
                                 </div>
                             </div>
                             <div class="hero-stats">
-                                <div class="hstat"><span class="hstat-n">2</span><span class="hstat-l">Trámites
+                                <div class="hstat" onclick="navToPage('page-tramites')"><span class="hstat-n">2</span><span class="hstat-l">Trámites
                                         activos</span></div>
-                                <div class="hstat"><span class="hstat-n" style="color:#fbbf24;">2</span><span
+                                <div class="hstat" onclick="navToPage('page-pagos')"><span class="hstat-n hstat-warn">2</span><span
                                         class="hstat-l">Pagos pendientes</span></div>
-                                <div class="hstat"><span class="hstat-n" style="color:#34d399;">1</span><span
+                                <div class="hstat" onclick="navToPage('page-reportes')"><span class="hstat-n hstat-ok">1</span><span
                                         class="hstat-l">Reporte atendido</span></div>
                             </div>
                         </div>
@@ -285,7 +267,7 @@
                                 <span>Obras</span>
                             </div>
                             <div class="sc-card" onclick="navToPage('page-chat')">
-                                <div class="sc-icon primary"><i class="fa-solid fa-robot"></i></div>
+                                <div class="sc-icon primary"><i class="fa-solid fa-headset"></i></div>
                                 <span>Asistente</span>
                             </div>
                             <div class="sc-card" onclick="navToPage('page-turnos')">
@@ -748,14 +730,14 @@
                     </nav>
 
                     <!-- Botón Flotante SOS -->
-                    <div id="sos-container" class="fab-sos-container pulse-animation" style="position: fixed; bottom: 85px; right: 20px; z-index: 9999; display: flex; align-items: stretch; border-radius: 30px; background: #dc2626; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.5);">
-                        <div class="drag-handle" style="cursor: move; padding: 14px 10px 14px 18px; color: white; display: flex; align-items: center; justify-content: center;" title="Arrastrar">
+                    <div id="sos-container" class="fab-sos-container" style="position: fixed; bottom: 85px; right: 20px; z-index: 9999; display: flex; align-items: stretch; border-radius: 10px; background: #991b1b; border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 4px 14px rgba(15, 23, 42, 0.28);">
+                        <div class="drag-handle" style="cursor: move; padding: 11px 8px 11px 14px; color: rgba(255,255,255,0.75); display: flex; align-items: center; justify-content: center;" title="Arrastrar">
                             <i class="fa-solid fa-grip-vertical"></i>
                         </div>
-                        <button class="fab-sos" onclick="openModal('modal-sos')" style="position: static; box-shadow: none; padding-left: 5px; padding-right: 15px; background: transparent;">
+                        <button class="fab-sos" onclick="openModal('modal-sos')" style="position: static; box-shadow: none; padding: 11px 12px 11px 4px; background: transparent; font-size: 0.88rem; letter-spacing: 0.04em;">
                             <i class="fa-solid fa-phone-volume"></i> SOS
                         </button>
-                        <button onclick="toggleSOSButton(false)" title="Ocultar SOS" style="background: transparent; color: white; border: none; padding: 0 18px 0 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; border-radius: 0 30px 30px 0;">
+                        <button onclick="toggleSOSButton(false)" title="Ocultar SOS" style="background: transparent; color: rgba(255,255,255,0.8); border: none; padding: 0 14px 0 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; border-radius: 0 10px 10px 0;">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
@@ -1257,6 +1239,93 @@
             </div>
         </div>
 
+        <!-- Modal Alerta de Emergencia -->
+        <div id="modal-emergencia" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="emg-modal-title">
+            <div class="modal emg-modal">
+                <div class="emg-hdr">
+                    <div class="emg-hdr-left">
+                        <div class="emg-icon-box">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 id="emg-modal-title">Alerta de Emergencia</h3>
+                            <span>GAD Municipal de Montúfar · Seguridad Ciudadana</span>
+                        </div>
+                    </div>
+                    <button type="button" class="close-btn" onclick="closeEmergencyModal()" aria-label="Cerrar">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Vista 1: Confirmación -->
+                    <div id="emg-confirm-view">
+                        <p class="emg-lead">¿Confirmas el envío de una alerta prioritaria al centro de monitoreo municipal?</p>
+
+                        <div class="emg-type-group">
+                            <label class="emg-label" for="emg-tipo-select">Tipo de incidencia</label>
+                            <select id="emg-tipo-select" class="emg-select">
+                                <option value="Seguridad ciudadana">Seguridad ciudadana</option>
+                                <option value="Emergencia médica">Emergencia médica</option>
+                                <option value="Incendio o riesgo estructural">Incendio o riesgo estructural</option>
+                                <option value="Accidente de tránsito">Accidente de tránsito</option>
+                                <option value="Otra emergencia">Otra emergencia</option>
+                            </select>
+                        </div>
+
+                        <div class="emg-info-box">
+                            <div class="emg-info-row">
+                                <i class="fa-solid fa-location-crosshairs"></i>
+                                <div>
+                                    <strong>Ubicación GPS en tiempo real</strong>
+                                    <span>Se solicitará acceso a tu ubicación para coordinar asistencia inmediata.</span>
+                                </div>
+                            </div>
+                            <div class="emg-info-row">
+                                <i class="fa-solid fa-id-badge"></i>
+                                <div>
+                                    <strong>Identificación del ciudadano</strong>
+                                    <span id="emg-citizen-preview">Se adjuntarán tus datos registrados en el portal.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="emg-error-box" class="emg-error-box d-none"></div>
+
+                        <div class="emg-actions">
+                            <button type="button" class="btn btn-outline emg-btn-cancel" onclick="closeEmergencyModal()">Cancelar</button>
+                            <button type="button" class="btn emg-btn-confirm" id="emg-btn-send" onclick="confirmEmergencyAlert()">
+                                <i class="fa-solid fa-paper-plane"></i> Enviar Alerta
+                            </button>
+                        </div>
+
+                        <div class="emg-footer-note">
+                            <i class="fa-solid fa-phone"></i>
+                            <span>En riesgo vital inmediato, comuníquese directamente al <a href="tel:911"><strong>ECU 911</strong></a>.</span>
+                        </div>
+                    </div>
+
+                    <!-- Vista 2: Alerta enviada -->
+                    <div id="emg-sent-view" class="d-none">
+                        <div class="emg-sent-banner">
+                            <div class="emg-sent-check"><i class="fa-solid fa-check"></i></div>
+                            <h4>Alerta registrada y enviada</h4>
+                            <p>El equipo municipal recibió tu ubicación y datos de contacto.</p>
+                        </div>
+
+                        <div class="emg-summary" id="emg-summary-details"></div>
+
+                        <div class="emg-actions">
+                            <a href="tel:911" class="btn btn-outline emg-btn-cancel">
+                                <i class="fa-solid fa-phone"></i> Llamar al 911
+                            </a>
+                            <button type="button" class="btn btn-primary emg-btn-done" onclick="closeEmergencyModal()">Entendido</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal SOS -->
         <div id="modal-sos" class="modal-overlay">
             <div class="modal" style="border-top: 5px solid #dc2626;">
@@ -1586,7 +1655,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=14.0"></script>
+    <script src="app.js?v=18.0"></script>
 </body>
 
 </html>

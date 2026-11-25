@@ -979,7 +979,7 @@ function updateProfileDisplay() {
     }
 
     if (sbName) sbName.textContent = (u.nombre || '') + ' ' + (u.apellido || '');
-    if (heroMsg) heroMsg.textContent = '¡Bienvenido, ' + (u.nombre || '') + '!';
+    if (heroMsg) heroMsg.textContent = 'Bienvenido, ' + (u.nombre || '');
 
     const astGreeting = document.getElementById('assistant-greeting-name');
     if (astGreeting) astGreeting.textContent = u.nombre || '';
@@ -2116,32 +2116,106 @@ function sendReciboEmail() {
 // 7. EMERGENCIAS Y NOTIFICACIONES
 // ═══════════════════════════════════════════════════
 function reportEmergency() {
-    if (confirm('¿Confirmas el envío de una ALERTA DE PELIGRO al Municipio de Montúfar? Se requerirá acceso a tu ubicación para el rastreo en tiempo real.')) {
-        if (!navigator.geolocation) {
-            showToast('Tu navegador no soporta la geolocalización.', 'err');
-            return;
-        }
+    const modal = document.getElementById('modal-emergencia');
+    if (!modal) return;
 
-        showToast('📍 Solicitando permiso de ubicación...', 'info');
+    const confirmView = document.getElementById('emg-confirm-view');
+    const sentView = document.getElementById('emg-sent-view');
+    const errorBox = document.getElementById('emg-error-box');
+    const sendBtn = document.getElementById('emg-btn-send');
+    const preview = document.getElementById('emg-citizen-preview');
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                // Simulación de envío al municipio
-                console.log(`Alerta de emergencia enviada: Lat ${lat}, Lng ${lng}`);
-                showToast(`🚨 ALERTA ROJA ENVIADA. El municipio tiene tu ubicación en tiempo real.`, 'warn');
-            },
-            (error) => {
-                let errorMsg = 'Error al obtener la ubicación.';
-                if (error.code === error.PERMISSION_DENIED) {
-                    errorMsg = 'Permiso denegado. No se puede enviar la alerta sin tu ubicación.';
-                }
-                showToast(errorMsg, 'err');
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
+    if (confirmView) confirmView.classList.remove('d-none');
+    if (sentView) sentView.classList.add('d-none');
+    if (errorBox) { errorBox.classList.add('d-none'); errorBox.innerHTML = ''; }
+    if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Alerta';
     }
+    if (preview && DB.usuario) {
+        const fullName = `${DB.usuario.nombre || ''} ${DB.usuario.apellido || ''}`.trim();
+        const ced = DB.usuario.cedula ? ` · C.I. ${DB.usuario.cedula}` : '';
+        preview.textContent = fullName ? `${fullName}${ced}` : 'Se adjuntarán tus datos registrados en el portal.';
+    }
+
+    openModal('modal-emergencia');
+}
+
+function closeEmergencyModal() {
+    closeModal('modal-emergencia');
+}
+
+function confirmEmergencyAlert() {
+    const errorBox = document.getElementById('emg-error-box');
+    const sendBtn = document.getElementById('emg-btn-send');
+    const tipoSelect = document.getElementById('emg-tipo-select');
+    const tipo = tipoSelect ? tipoSelect.value : 'Seguridad ciudadana';
+
+    const showEmgError = (msg) => {
+        if (errorBox) {
+            errorBox.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i><span>${msg}</span>`;
+            errorBox.classList.remove('d-none');
+        }
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Reintentar Envío';
+        }
+    };
+
+    if (errorBox) { errorBox.classList.add('d-none'); errorBox.innerHTML = ''; }
+
+    if (!navigator.geolocation) {
+        showEmgError('Tu navegador no soporta geolocalización. Por favor llama directamente al ECU 911.');
+        return;
+    }
+
+    if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Obteniendo ubicación...';
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude.toFixed(5);
+            const lng = position.coords.longitude.toFixed(5);
+            const acc = Math.round(position.coords.accuracy || 0);
+            const now = new Date();
+            const folio = `EMG-${now.getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+            const hora = now.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const citizenName = `${DB.usuario?.nombre || 'Ciudadano'} ${DB.usuario?.apellido || ''}`.trim();
+
+            console.log(`Alerta de emergencia enviada [${folio}] (${tipo}): Lat ${lat}, Lng ${lng}`);
+
+            const summary = document.getElementById('emg-summary-details');
+            if (summary) {
+                summary.innerHTML = `
+                    <div class="emg-sum-row"><span>Código de alerta</span><strong>${folio}</strong></div>
+                    <div class="emg-sum-row"><span>Incidencia</span><strong>${tipo}</strong></div>
+                    <div class="emg-sum-row"><span>Ciudadano</span><strong>${citizenName}</strong></div>
+                    <div class="emg-sum-row"><span>Coordenadas GPS</span><strong>${lat}, ${lng}${acc ? ` (±${acc} m)` : ''}</strong></div>
+                    <div class="emg-sum-row"><span>Hora de registro</span><strong>${hora}</strong></div>
+                `;
+            }
+
+            const confirmView = document.getElementById('emg-confirm-view');
+            const sentView = document.getElementById('emg-sent-view');
+            if (confirmView) confirmView.classList.add('d-none');
+            if (sentView) sentView.classList.remove('d-none');
+
+            showToast(`Alerta ${folio} enviada al GAD Municipal de Montúfar.`, 'warn');
+        },
+        (error) => {
+            let errorMsg = 'No se pudo obtener tu ubicación actual. Verifica que el GPS esté activo e intenta nuevamente.';
+            if (error.code === error.PERMISSION_DENIED) {
+                errorMsg = 'Permiso de ubicación denegado. Habilita el acceso a la ubicación en tu navegador para enviar la alerta.';
+            } else if (error.code === error.TIMEOUT) {
+                errorMsg = 'Se agotó el tiempo de espera del GPS. Intenta nuevamente o llama directamente al ECU 911.';
+            }
+            showEmgError(errorMsg);
+            showToast('No se pudo obtener la ubicación.', 'err');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
 }
 
 function showToast(msg, type = 'success') {
@@ -2340,7 +2414,7 @@ function loginConNuevaCuenta() {
     renderAllModules();
     // Actualizar saludo del hero
     const h1 = document.querySelector('#page-dashboard .hero-banner h1');
-    if (h1) h1.textContent = `¡Bienvenido, ${DB.usuario.nombre}!`;
+    if (h1) h1.textContent = `Bienvenido, ${DB.usuario.nombre}`;
 }
 
 // Service Worker se registra al final de app.js con manejo de actualizaciones
@@ -2706,7 +2780,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isDragging) {
                 isDragging = false;
                 dragHandle.style.cursor = 'move';
-                sosContainer.classList.add('pulse-animation');
             }
         });
     }
